@@ -1,0 +1,22 @@
+{
+  "name": "duatom",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0 --port 8080",
+    "backend": "python3 backend/app.py",
+    "backend:setup": "python3 -m venv backend/.venv && backend/.venv/bin/pip install -r backend/requirements.txt",
+    "start": "echo 'Terminal 1: npm run backend | Terminal 2: npm run dev'"
+  },
+  "dependencies": {
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "4.7.0",
+    "vite": "6.3.5"
+  }
+}
