@@ -865,3 +865,86 @@ img { max-width: 100%; }
   .onboarding-result { padding-left: 14px; padding-right: 14px; }
   .focus-list article { padding-left: 8px; padding-right: 8px; gap: 6px; }
 }
+
+/* JSON learning content metadata and source links */
+.flashcard-source {
+  margin-top: auto;
+  padding-top: 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  max-width: 100%;
+  color: var(--blue-dark);
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 750;
+  text-align: left;
+}
+.flashcard-source:hover { text-decoration: underline; }
+.flashcard-source > span { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.flashcard-source small { color: var(--muted); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+
+.question-meta { margin: -12px 0 15px; display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
+.question-meta > span, .question-meta > a {
+  min-height: 28px;
+  padding: 5px 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f8fafc;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.question-meta > a { color: var(--blue-dark); }
+.question-meta > a:hover { background: var(--blue-soft); border-color: #bfd2ed; }
+.lesson-meta { color: #8190a7; font-size: 11px; line-height: 1.3; font-weight: 650; }
+
+@media (max-width: 640px) {
+  .flashcard-source { width: 100%; justify-content: flex-start; padding-top: 18px; }
+  .question-meta { margin-top: -8px; }
+  .question-meta > span, .question-meta > a { max-width: 100%; }
+}
+
+/* Rich lesson flashcards: structured theory, formulas, worked examples and code. */
+.flashcard { align-items: stretch; text-align: left; }
+.flashcard-subject { align-self: flex-start; }
+.flashcard-visual { align-self: center; }
+.flashcard > .eyebrow, .flashcard > h2, .flashcard > .flashcard-lead { text-align: center; align-self: center; }
+.flashcard > h2 { max-width: 680px; }
+.flashcard .flashcard-lead { max-width: 660px; }
+.flashcard-rich { width: 100%; max-width: 680px; margin: 26px auto 0; display: grid; gap: 14px; }
+.flashcard-section { border: 1px solid var(--line); border-radius: 16px; padding: 17px 18px; background: #f8fafc; }
+.flashcard-section-title { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; color: #243957; font-size: 13px; font-weight: 800; letter-spacing: .01em; }
+.flashcard-points ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; color: #46546b; font-size: 15px; line-height: 1.55; }
+.flashcard-points li::marker { color: var(--blue-dark); }
+.formula-box { background: #f4f8ff; border-color: #cbdcf5; }
+.formula-expression { display: block; overflow-x: auto; padding: 14px 15px; border-radius: 12px; background: white; border: 1px solid #d9e5f5; color: #163c73; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size: clamp(15px, 2.2vw, 18px); font-weight: 700; line-height: 1.5; white-space: pre-wrap; }
+.formula-box p, .example-box p { max-width: none; margin: 10px 0 0; font-size: 14px; line-height: 1.58; text-align: left; }
+.example-box { background: #fbfcfe; }
+.code-box { padding: 0; overflow: hidden; background: #111827; border-color: #1f2937; }
+.code-box-head { min-height: 45px; padding: 0 15px; display: flex; align-items: center; justify-content: space-between; gap: 12px; color: #e5e7eb; border-bottom: 1px solid #293244; }
+.code-box-head > span { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 800; }
+.code-box-head small { color: #9ca3af; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; text-transform: uppercase; }
+.code-box > pre, .code-output pre { margin: 0; overflow-x: auto; white-space: pre; tab-size: 4; }
+.code-box > pre { padding: 18px; color: #e5e7eb; font-size: 13px; line-height: 1.65; }
+.code-box > pre code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+.code-output { border-top: 1px solid #293244; background: #0b1220; }
+.code-output small { display: block; padding: 10px 18px 0; color: #8ea1bc; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
+.code-output pre { padding: 7px 18px 16px; color: #b8c7db; font-size: 12px; line-height: 1.55; }
+.flashcard-takeaway { display: flex; align-items: flex-start; gap: 10px; padding: 14px 16px; border-radius: 14px; background: #eef6ff; color: #304f76; font-size: 14px; line-height: 1.5; }
+.flashcard-takeaway svg { flex: 0 0 auto; margin-top: 1px; color: var(--blue-dark); }
+.flashcard-source { margin-top: 22px; align-self: center; }
+
+@media (max-width: 640px) {
+  .flashcard-rich { margin-top: 20px; gap: 10px; }
+  .flashcard-section { padding: 14px; border-radius: 14px; }
+  .flashcard-points ul { padding-left: 18px; font-size: 14px; gap: 7px; }
+  .formula-expression { padding: 12px; font-size: 14px; }
+  .formula-box p, .example-box p { font-size: 13px; }
+  .code-box > pre { padding: 14px; font-size: 12px; }
+  .flashcard-takeaway { font-size: 13px; padding: 12px 13px; }
+}

@@ -46,152 +46,54 @@ app.config.update(
 )
 CORS(app, supports_credentials=True)
 
+CONTENT_DIR = BASE_DIR / "content"
+
+
+def load_learning_content() -> tuple[list[dict], dict[str, list[dict]]]:
+    """Load canonical course and question content from JSON files.
+
+    SQLite stores identities, progress and attempts; lesson/question copy lives in backend/content.
+    """
+    courses: list[dict] = []
+    questions: dict[str, list[dict]] = {}
+    course_dir = CONTENT_DIR / "courses"
+    question_dir = CONTENT_DIR / "questions"
+    if not course_dir.exists() or not question_dir.exists():
+        raise RuntimeError(f"Learning content directory is missing: {CONTENT_DIR}")
+
+    for path in sorted(course_dir.glob("*.json")):
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        subject = payload.get("subject") or {}
+        if not subject.get("id") or not isinstance(payload.get("lessons"), list):
+            raise RuntimeError(f"Invalid course JSON: {path}")
+        for lesson in payload["lessons"]:
+            if not lesson.get("key") or not lesson.get("title") or not isinstance(lesson.get("cards"), list):
+                raise RuntimeError(f"Invalid lesson in {path}: {lesson.get('title', '<untitled>')}")
+            for card in lesson["cards"]:
+                source = card.get("source") or {}
+                if not source.get("title") or not source.get("url"):
+                    raise RuntimeError(f"Every flashcard must have a source URL: {path} / {lesson['key']}")
+        courses.append(payload)
+
+    for path in sorted(question_dir.glob("*.json")):
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        subject_id = payload.get("subjectId")
+        items = payload.get("questions")
+        if not subject_id or not isinstance(items, list):
+            raise RuntimeError(f"Invalid question JSON: {path}")
+        for item in items:
+            if not item.get("key") or len(item.get("answers", [])) < 2:
+                raise RuntimeError(f"Invalid question in {path}: {item.get('key', '<no-key>')}")
+        questions[subject_id] = items
+
+    return courses, questions
+
+
+COURSE_CATALOG, QUESTION_CATALOG = load_learning_content()
 SUBJECTS = [
-    ("physics", "Физика", "atom", "Реакторы, нейтроны, теплообмен и ионизирующее излучение."),
-    ("informatics", "Информатика", "cpu", "Датчики, алгоритмы, данные и автоматизированные системы атомной отрасли."),
-    ("chemistry", "Химия", "flask", "Ядерное топливо, изотопы, материалы и водно-химические процессы."),
-    ("biology", "Биология", "dna", "Радиобиология, дозиметрия и применение излучения в медицине."),
-    ("math", "Математика", "calculator", "Период полураспада, мощность, КПД, вероятности и инженерные расчёты."),
-    ("history", "История атомной промышленности", "landmark", "Ключевые этапы развития российской атомной отрасли."),
+    (course["subject"]["id"], course["subject"]["name"], course["subject"]["icon"], course["subject"]["description"])
+    for course in COURSE_CATALOG
 ]
-
-LESSONS = {
-    "physics": [
-        (
-            "Цепная реакция и управление реактором",
-            "Как нейтроны поддерживают деление ядер и почему реактором можно управлять.",
-            "При делении тяжёлого ядра выделяется энергия и несколько нейтронов. Если часть этих нейтронов вызывает новые деления, возникает цепная реакция. В энергетическом реакторе она поддерживается в контролируемом режиме: в среднем одно поколение нейтронов должно воспроизводить следующее без лавинообразного роста.\n\nДля управления количеством нейтронов используют материалы, которые хорошо их поглощают, а в ряде типов реакторов — замедлитель, снижающий энергию быстрых нейтронов. Главная физическая идея проста: мощность реактора связана со скоростью протекания делений, поэтому управление нейтронным балансом означает управление мощностью."
-        ),
-        (
-            "От ядерной энергии к электричеству",
-            "Почему АЭС всё равно нужна турбина и генератор.",
-            "Энергия деления сначала превращается в тепло внутри топлива. Тепло передаётся теплоносителю, затем используется для получения пара или нагрева рабочего тела. Поток пара вращает турбину, а турбина — электрический генератор.\n\nПоэтому АЭС объединяет ядерную физику и обычную теплоэнергетику. В школьных задачах здесь встречаются мощность P = A/t, количество теплоты Q = cmΔT и коэффициент полезного действия η = Aполезн/Aзатрач."
-        ),
-    ],
-    "informatics": [
-        (
-            "Данные от датчиков",
-            "Как цифровая система превращает измерения в понятную оператору информацию.",
-            "На промышленном объекте множество датчиков измеряют температуру, давление, расход и другие параметры. Компьютерная система получает значения, проверяет их диапазоны, сохраняет историю и показывает оператору состояние оборудования.\n\nС точки зрения информатики это цепочка: измерение → передача → проверка → хранение → визуализация. Важны точность форматов данных, временные метки и понятные алгоритмы обработки."
-        ),
-        (
-            "Алгоритмы и резервирование",
-            "Почему критичные системы не должны зависеть от одного измерения.",
-            "В ответственных технических системах часто используют несколько независимых каналов измерения. Алгоритм может сравнивать их показания и отмечать расхождения. Это пример применения логики, условий и обработки массивов данных в реальной промышленности.\n\nПри проектировании программ важны предсказуемость, тестируемость и принцип безопасного отказа: ошибка программы не должна приводить к неуправляемому поведению оборудования."
-        ),
-    ],
-    "chemistry": [
-        (
-            "Изотопы и ядерное топливо",
-            "Одинаковый элемент может иметь ядра разного состава.",
-            "Изотопы одного химического элемента имеют одинаковое число протонов, но разное число нейтронов. Поэтому их химические свойства близки, а ядерные свойства могут заметно отличаться.\n\nВ энергетике часто говорят об уране и его изотопах. Топливо обычно используется не как металлический уран, а в форме химически устойчивого соединения, например диоксида урана UO₂, сформированного в топливные таблетки."
-        ),
-        (
-            "Материалы и водно-химический режим",
-            "Почему химия важна для долговечности оборудования.",
-            "Теплоноситель контактирует с металлическими поверхностями, поэтому его химический состав контролируют. Нежелательные примеси могут ускорять коррозию и образование отложений.\n\nДля химика атомной отрасли важны кислотно-основные равновесия, окислительно-восстановительные процессы, растворимость веществ и методы аналитического контроля."
-        ),
-    ],
-    "biology": [
-        (
-            "Ионизирующее излучение и клетка",
-            "Что происходит, когда излучение передаёт энергию биологической ткани.",
-            "Ионизирующее излучение способно создавать ионы и активные частицы в веществе. В клетке это может приводить к химическим изменениям молекул, включая ДНК. Организм обладает системами репарации, которые исправляют многие повреждения, но эффективность зависит от характера и количества воздействий.\n\nВ радиобиологии различают физическую поглощённую дозу и биологический эффект. Для оценки защиты важны время воздействия, расстояние до источника и экранирование."
-        ),
-        (
-            "Ядерные технологии в медицине",
-            "Как радиоизотопы помогают диагностировать и лечить заболевания.",
-            "В ядерной медицине радионуклиды применяют как метки: по распределению препарата можно исследовать работу органов. В лучевой терапии и радионуклидной терапии ионизирующее излучение используют для воздействия на опухолевые клетки.\n\nБиологическая задача состоит в том, чтобы получить нужный эффект в мишени и максимально ограничить воздействие на здоровые ткани."
-        ),
-    ],
-    "math": [
-        (
-            "Период полураспада и экспонента",
-            "Почему количество радиоактивных ядер уменьшается не линейно.",
-            "Если период полураспада равен T, то через один период остаётся половина исходного количества ядер, через два — четверть, через три — одна восьмая. Это описывается формулой N = N₀·(1/2)^(t/T).\n\nТакие задачи тренируют степени, логарифмы и работу с экспоненциальными зависимостями. Важно отличать период полураспада от времени, за которое вещество исчезает полностью: математически экспонента приближается к нулю постепенно."
-        ),
-        (
-            "Мощность, энергия и КПД",
-            "Инженерные расчёты на примере энергоблока.",
-            "Электрическая энергия связана с мощностью формулой E = Pt. Если известна тепловая мощность и КПД преобразования, электрическую мощность можно оценить как Pэл = η·Pтепл.\n\nВ реальных расчётах также постоянно используются проценты, пропорции, перевод единиц и оценка погрешности. Поэтому школьная математика напрямую связана с инженерной практикой атомной отрасли."
-        ),
-    ],
-    "history": [
-        (
-            "Начало отечественной атомной отрасли",
-            "Почему 20 августа 1945 года считается одной из ключевых дат.",
-            "20 августа 1945 года был создан Специальный комитет по использованию атомной энергии. Эта дата стала важной точкой отсчёта организованного развития отечественной атомной промышленности.\n\nВ последующие годы сформировалась крупная научно-производственная система: исследовательские центры, конструкторские бюро, предприятия топливного цикла и энергетические проекты."
-        ),
-        (
-            "Обнинск и мирный атом",
-            "Первая в мире АЭС стала важным шагом от исследований к энергетике.",
-            "26 июня 1954 года в Обнинске была запущена первая в мире атомная электростанция. Она имела небольшую по современным меркам мощность, но стала экспериментальной площадкой для новых технологий и показала возможность промышленного получения электроэнергии от управляемой цепной реакции.\n\nОпыт Обнинска стал одним из символов перехода атомных технологий к мирному применению."
-        ),
-    ],
-}
-
-QUESTIONS = {
-    "physics": [
-        ("Цепная реакция", "Что в реакторе непосредственно поддерживает цепную реакцию деления?", ["Нейтроны", "Электроны", "Фотоны видимого света", "Ионы кислорода"], 0, "При делении ядра рождаются нейтроны, которые могут вызывать новые акты деления."),
-        ("Управление", "Для чего в реакторе нужны материалы, хорошо поглощающие нейтроны?", ["Для регулирования нейтронного баланса", "Для увеличения напряжения генератора", "Для охлаждения турбины", "Для очистки пара"], 0, "Поглощение части нейтронов позволяет влиять на скорость цепной реакции."),
-        ("Энергетика", "Какая последовательность преобразований наиболее типична для АЭС?", ["Ядерная → тепловая → механическая → электрическая", "Химическая → световая → электрическая", "Механическая → ядерная → химическая", "Электрическая → ядерная → тепловая"], 0, "Энергия деления нагревает теплоноситель, пар вращает турбину, а генератор вырабатывает электричество."),
-        ("Мощность", "Энергоблок выработал 2400 МВт·ч за 3 часа. Какова его средняя электрическая мощность?", ["800 МВт", "7200 МВт", "2403 МВт", "600 МВт"], 0, "P = E/t = 2400/3 = 800 МВт."),
-        ("Теплообмен", "Какой процесс переносит энергию от более горячего тела к более холодному из-за разности температур?", ["Теплопередача", "Электролиз", "Дифракция", "Радиолокация"], 0, "Перенос тепла обусловлен разностью температур."),
-        ("Излучение", "Какая величина в системе СИ измеряется в греях (Гр)?", ["Поглощённая доза", "Электрическое сопротивление", "Активность", "Мощность"], 0, "Грей — единица поглощённой дозы: 1 Дж энергии на 1 кг вещества."),
-        ("Нейтроны", "Зачем в некоторых типах реакторов используют замедлитель нейтронов?", ["Чтобы снизить их кинетическую энергию", "Чтобы превратить их в протоны", "Чтобы увеличить частоту сети", "Чтобы нагреть генератор"], 0, "Замедлитель уменьшает энергию нейтронов за счёт столкновений с ядрами вещества."),
-        ("Генератор", "Какой физический принцип лежит в основе работы электрического генератора турбины?", ["Электромагнитная индукция", "Фотоэффект", "Радиоактивный распад", "Капиллярность"], 0, "В генераторе изменение магнитного потока создаёт ЭДС индукции."),
-    ],
-    "informatics": [
-        ("Датчики", "Какой этап логично выполнить сразу после получения значения от промышленного датчика?", ["Проверить формат и допустимый диапазон", "Удалить все предыдущие данные", "Сразу отключить систему", "Преобразовать число в изображение"], 0, "Входные данные сначала валидируют, чтобы обнаружить ошибки измерения или передачи."),
-        ("Алгоритмы", "Какой оператор программы лучше всего подходит для реакции на превышение температуры?", ["Условный оператор if", "Только цикл без условия", "Комментарий", "Импорт библиотеки"], 0, "Пороговая логика естественно описывается условием: если значение выше порога, выполнить действие."),
-        ("Данные", "Зачем измерениям от датчиков нужны временные метки?", ["Чтобы восстановить порядок событий и строить тренды", "Чтобы уменьшить массу датчика", "Чтобы изменить единицы измерения", "Чтобы увеличить напряжение"], 0, "Временная метка связывает значение с моментом измерения."),
-        ("Резервирование", "Три независимых датчика измеряют один параметр. Какой простой алгоритм помогает уменьшить влияние одиночного ошибочного показания?", ["Сравнить значения и использовать медиану", "Всегда брать максимальное", "Игнорировать два датчика", "Сложить значения без деления"], 0, "Медиана трёх значений устойчива к одному сильно выбивающемуся показанию."),
-        ("Сети", "Как называется модель обмена, в которой устройство отправляет запрос серверу и получает ответ?", ["Клиент–сервер", "Только аналоговая", "Механическая", "Оптическая без данных"], 0, "Клиент формирует запрос, сервер обрабатывает его и возвращает ответ."),
-        ("Базы данных", "Какой идентификатор лучше использовать как первичный ключ записи измерения?", ["Уникальный ID", "Цвет экрана", "Название браузера", "Размер окна"], 0, "Первичный ключ должен однозначно идентифицировать запись."),
-        ("Логика", "Сигнал тревоги должен включиться, если температура высокая И давление высокое. Какая логическая операция нужна?", ["AND (И)", "OR (ИЛИ)", "NOT (НЕ)", "XOR всегда"], 0, "Условие требует одновременного выполнения двух признаков, значит используется AND."),
-        ("Надёжность", "Почему критичные программы покрывают автоматическими тестами?", ["Чтобы регулярно проверять ожидаемое поведение после изменений", "Чтобы увеличить размер исходного кода", "Чтобы заменить датчики", "Чтобы отказаться от документации"], 0, "Тесты помогают быстро обнаруживать регрессии и ошибки в логике."),
-    ],
-    "chemistry": [
-        ("Изотопы", "Чем изотопы одного элемента отличаются друг от друга?", ["Числом нейтронов", "Числом протонов", "Химическим символом", "Зарядом ядра при одинаковом Z"], 0, "Изотопы имеют одинаковое число протонов, но разное число нейтронов."),
-        ("Топливо", "Какое соединение часто используется как форма уранового топлива в энергетических реакторах?", ["UO₂", "NaCl", "CO₂", "CaCO₃"], 0, "Диоксид урана UO₂ — распространённая керамическая форма ядерного топлива."),
-        ("Коррозия", "Зачем контролировать химический состав теплоносителя?", ["Чтобы снижать коррозию и образование отложений", "Чтобы изменить период полураспада", "Чтобы увеличить число протонов", "Чтобы остановить электромагнитную индукцию"], 0, "Водно-химический режим помогает ограничивать коррозионные процессы и загрязнение поверхностей."),
-        ("Растворы", "Если pH водного раствора уменьшился с 7 до 6, концентрация H⁺ приблизительно...", ["увеличилась в 10 раз", "уменьшилась в 10 раз", "не изменилась", "увеличилась в 2 раза"], 0, "Шкала pH логарифмическая: изменение на единицу соответствует примерно десятикратному изменению [H⁺]."),
-        ("Материалы", "Почему к материалам оболочек топлива предъявляют высокие требования?", ["Они работают при температуре, механических нагрузках и воздействии излучения", "Они нужны только для окраски", "Они не контактируют с теплоносителем", "Их свойства не важны"], 0, "Материал должен сохранять целостность в сложных условиях эксплуатации."),
-        ("Окисление", "Как называется процесс отдачи электронов частицей?", ["Окисление", "Восстановление", "Гидролиз", "Кристаллизация"], 0, "В окислительно-восстановительной реакции окисление соответствует отдаче электронов."),
-        ("Аналитика", "Какова основная цель аналитического контроля воды в технологическом контуре?", ["Определять состав и концентрации примесей", "Изменять массу протонов", "Создавать электричество напрямую", "Увеличивать скорость света"], 0, "Аналитические методы позволяют следить за химическим состоянием среды."),
-        ("Периодическая система", "Уран относится к какой группе элементов?", ["Актиноиды", "Галогены", "Щелочные металлы", "Благородные газы"], 0, "Уран — элемент актиноидного ряда."),
-    ],
-    "biology": [
-        ("Радиобиология", "Какая молекула хранит основную наследственную информацию клетки?", ["ДНК", "Вода", "Глюкоза", "АТФ как единственный носитель наследственности"], 0, "Основная наследственная информация записана в последовательности ДНК."),
-        ("Защита", "Какое действие обычно уменьшает дозу внешнего облучения от точечного источника?", ["Увеличение расстояния", "Уменьшение расстояния", "Увеличение времени рядом с источником", "Отказ от экранирования"], 0, "При увеличении расстояния интенсивность излучения обычно уменьшается; также применяют сокращение времени и экранирование."),
-        ("Медицина", "Для чего радионуклид может использоваться в диагностике?", ["Как метка для отслеживания распределения препарата", "Для изменения группы крови", "Для замены ДНК", "Для создания механической энергии сердца"], 0, "Радиофармпрепарат позволяет регистрировать распределение вещества в организме."),
-        ("Клетка", "Как называется процесс исправления повреждений ДНК клеточными системами?", ["Репарация", "Трансляция энергии", "Осмос ядра", "Фотосинтез"], 0, "Репарация ДНК — совокупность механизмов обнаружения и исправления повреждений."),
-        ("Доза", "Эквивалентную или эффективную дозу ионизирующего излучения измеряют в...", ["зивертах", "ваттах", "паскалях", "омах"], 0, "Зиверт используется для величин, учитывающих биологическое воздействие излучения."),
-        ("Терапия", "Главная идея лучевой терапии опухоли состоит в том, чтобы...", ["доставить достаточную дозу к мишени при ограничении дозы здоровым тканям", "облучить всё тело одинаково", "полностью исключить планирование", "заменить хирургический инструмент магнитом"], 0, "Планирование стремится максимизировать воздействие на опухоль и защитить здоровые ткани."),
-        ("Радикалы", "Почему вода важна в радиобиологии?", ["При облучении воды могут образовываться химически активные частицы", "Она полностью блокирует любое излучение", "Она не входит в состав клеток", "Она превращает нейтроны в электроны"], 0, "Радиолиз воды может приводить к образованию активных радикалов, способных реагировать с биомолекулами."),
-        ("Организм", "Какие клетки особенно чувствительны к повреждающим факторам в общем случае?", ["Активно делящиеся", "Только клетки без ядра", "Только костные минералы", "Любые клетки абсолютно одинаково"], 0, "Активное деление требует точного копирования ДНК, поэтому такие ткани часто более чувствительны к повреждениям."),
-    ],
-    "math": [
-        ("Полураспад", "После трёх периодов полураспада осталось какая доля исходного количества ядер?", ["1/8", "1/3", "3/8", "1/6"], 0, "После каждого периода количество делится пополам: 1 → 1/2 → 1/4 → 1/8."),
-        ("Полураспад", "Период полураспада равен 5 суткам. Какая доля исходного количества останется через 10 суток?", ["1/4", "1/2", "1/10", "3/4"], 0, "10 суток — два периода полураспада: (1/2)² = 1/4."),
-        ("КПД", "Тепловая мощность установки 3000 МВт, КПД 33%. Оцените электрическую мощность.", ["990 МВт", "9090 МВт", "99 МВт", "3000 МВт"], 0, "Pэл = 0,33 × 3000 ≈ 990 МВт."),
-        ("Энергия", "Блок мощностью 1000 МВт работает 2 часа. Какую энергию он выработает?", ["2000 МВт·ч", "500 МВт·ч", "1002 МВт·ч", "2 МВт·ч"], 0, "E = Pt = 1000 × 2 = 2000 МВт·ч."),
-        ("Проценты", "Показатель вырос с 80 до 92 единиц. На сколько процентов он вырос относительно исходного значения?", ["15%", "12%", "20%", "92%"], 0, "Прирост 12; 12/80 × 100% = 15%."),
-        ("Вероятность", "Вероятность безотказной работы одного независимого канала равна 0,9. Какова вероятность, что два независимых канала одновременно работают безотказно?", ["0,81", "1,8", "0,45", "0,99"], 0, "Для независимых событий вероятности перемножаются: 0,9 × 0,9 = 0,81."),
-        ("Пропорции", "Если 4 одинаковых датчика обрабатывают 120 измерений в секунду поровну, сколько приходится на один?", ["30", "480", "116", "40"], 0, "120/4 = 30 измерений в секунду на датчик."),
-        ("Единицы", "1 ГВт равен...", ["1000 МВт", "100 МВт", "10 МВт", "1 МВт"], 0, "Префикс гига означает 10⁹, мега — 10⁶, поэтому 1 ГВт = 1000 МВт."),
-    ],
-    "history": [
-        ("1945", "Какая дата считается одной из ключевых точек отсчёта отечественной атомной промышленности?", ["20 августа 1945 года", "12 апреля 1961 года", "9 мая 1945 года", "26 декабря 1991 года"], 0, "20 августа 1945 года был создан Специальный комитет по использованию атомной энергии."),
-        ("Обнинск", "В каком городе была запущена первая в мире атомная электростанция?", ["Обнинск", "Санкт-Петербург", "Новосибирск", "Владивосток"], 0, "Первая в мире АЭС была запущена в Обнинске."),
-        ("1954", "В каком году начала работу первая в мире Обнинская АЭС?", ["1954", "1945", "1969", "1986"], 0, "Энергопуск первой в мире АЭС в Обнинске состоялся 26 июня 1954 года."),
-        ("Мирный атом", "Почему запуск Обнинской АЭС стал важной вехой?", ["Он продемонстрировал промышленное получение электроэнергии от управляемой цепной реакции", "Он стал первым запуском искусственного спутника", "Он открыл первую угольную шахту", "Он создал первую гидроэлектростанцию"], 0, "Станция показала практическое мирное применение ядерной энергии для выработки электричества."),
-        ("Отрасль", "Что кроме АЭС входит в атомную промышленность?", ["Наука, топливный цикл, машиностроение, медицина и другие направления", "Только электростанции", "Только добыча угля", "Только производство компьютеров"], 0, "Атомная отрасль — это широкая система научных и производственных направлений."),
-        ("Наука", "Какую роль играла Обнинская АЭС в первые годы?", ["Опытно-экспериментальную площадку для отработки технологий", "Только музейную", "Только гидрологическую", "Только транспортную"], 0, "На станции отрабатывали первые решения атомной энергетики и проводили исследования."),
-        ("Хронология", "Какое событие произошло раньше?", ["Создание Специального комитета в 1945 году", "Пуск Обнинской АЭС в 1954 году", "Они произошли одновременно", "Нельзя определить"], 0, "1945 год предшествует 1954 году."),
-        ("Компетенции", "Почему история атомной промышленности связана одновременно с наукой и инженерией?", ["Развитие отрасли требовало фундаментальных исследований и создания реальных технических систем", "Потому что инженеры не используют физику", "Потому что отрасль не связана с производством", "Потому что научные данные не нужны технике"], 0, "Атомные технологии развивались на стыке физики, химии, материаловедения, математики и инженерии."),
-    ],
-}
 
 
 
@@ -256,19 +158,29 @@ def init_db() -> None:
             CREATE TABLE IF NOT EXISTS lessons (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 subject_id TEXT NOT NULL,
+                content_key TEXT,
                 title TEXT NOT NULL,
                 summary TEXT NOT NULL,
                 body TEXT NOT NULL,
+                cards_json TEXT NOT NULL DEFAULT '[]',
+                difficulty TEXT NOT NULL DEFAULT 'Базовый',
+                duration_minutes INTEGER NOT NULL DEFAULT 8,
+                tags_json TEXT NOT NULL DEFAULT '[]',
                 FOREIGN KEY(subject_id) REFERENCES subjects(id)
             );
             CREATE TABLE IF NOT EXISTS questions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 subject_id TEXT NOT NULL,
+                content_key TEXT,
                 topic TEXT NOT NULL,
                 question TEXT NOT NULL,
                 answers_json TEXT NOT NULL,
                 correct_index INTEGER NOT NULL,
                 explanation TEXT NOT NULL,
+                difficulty TEXT NOT NULL DEFAULT 'Базовый',
+                origin TEXT NOT NULL DEFAULT 'original',
+                source_title TEXT,
+                source_url TEXT,
                 FOREIGN KEY(subject_id) REFERENCES subjects(id)
             );
             CREATE TABLE IF NOT EXISTS users (
@@ -381,19 +293,80 @@ def init_db() -> None:
                ON CONFLICT(id) DO UPDATE SET name=excluded.name, icon=excluded.icon, description=excluded.description""",
             SUBJECTS,
         )
-        if conn.execute("SELECT COUNT(*) FROM lessons").fetchone()[0] == 0:
-            for subject_id, lessons in LESSONS.items():
-                conn.executemany(
-                    "INSERT INTO lessons(subject_id, title, summary, body) VALUES (?, ?, ?, ?)",
-                    [(subject_id, *lesson) for lesson in lessons],
+        existing_lesson_columns = {row["name"] for row in conn.execute("PRAGMA table_info(lessons)").fetchall()}
+        lesson_column_migrations = {
+            "content_key": "TEXT",
+            "cards_json": "TEXT NOT NULL DEFAULT '[]'",
+            "difficulty": "TEXT NOT NULL DEFAULT 'Базовый'",
+            "duration_minutes": "INTEGER NOT NULL DEFAULT 8",
+            "tags_json": "TEXT NOT NULL DEFAULT '[]'",
+        }
+        for column_name, definition in lesson_column_migrations.items():
+            if column_name not in existing_lesson_columns:
+                conn.execute(f"ALTER TABLE lessons ADD COLUMN {column_name} {definition}")
+
+        existing_question_columns = {row["name"] for row in conn.execute("PRAGMA table_info(questions)").fetchall()}
+        question_column_migrations = {
+            "content_key": "TEXT",
+            "difficulty": "TEXT NOT NULL DEFAULT 'Базовый'",
+            "origin": "TEXT NOT NULL DEFAULT 'original'",
+            "source_title": "TEXT",
+            "source_url": "TEXT",
+        }
+        for column_name, definition in question_column_migrations.items():
+            if column_name not in existing_question_columns:
+                conn.execute(f"ALTER TABLE questions ADD COLUMN {column_name} {definition}")
+
+        conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_lessons_content_key ON lessons(content_key)")
+        conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_questions_content_key ON questions(content_key)")
+
+        # JSON is canonical. Existing rows with matching titles are upgraded in place so progress IDs survive.
+        for course in COURSE_CATALOG:
+            subject_id = course["subject"]["id"]
+            for lesson in course["lessons"]:
+                body = "\n\n".join(card.get("text", "") for card in lesson["cards"] if card.get("type") == "theory")
+                values = (
+                    subject_id, lesson["key"], lesson["title"], lesson["summary"], body,
+                    json.dumps(lesson["cards"], ensure_ascii=False),
+                    lesson.get("difficulty", "Базовый"), int(lesson.get("durationMinutes", 8)),
+                    json.dumps(lesson.get("tags", []), ensure_ascii=False),
                 )
-            for subject_id, questions in QUESTIONS.items():
-                conn.executemany(
-                    """INSERT INTO questions(subject_id, topic, question, answers_json, correct_index, explanation)
-                       VALUES (?, ?, ?, ?, ?, ?)""",
-                    [(subject_id, topic, question, json.dumps(answers, ensure_ascii=False), correct, explanation)
-                     for topic, question, answers, correct, explanation in questions],
+                existing = conn.execute(
+                    "SELECT id FROM lessons WHERE content_key=? OR (content_key IS NULL AND subject_id=? AND title=?) ORDER BY content_key IS NULL LIMIT 1",
+                    (lesson["key"], subject_id, lesson["title"]),
+                ).fetchone()
+                if existing:
+                    conn.execute(
+                        """UPDATE lessons SET subject_id=?, content_key=?, title=?, summary=?, body=?, cards_json=?,
+                           difficulty=?, duration_minutes=?, tags_json=? WHERE id=?""",
+                        (*values, existing["id"]),
+                    )
+                else:
+                    conn.execute(
+                        """INSERT INTO lessons(subject_id, content_key, title, summary, body, cards_json, difficulty, duration_minutes, tags_json)
+                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""", values,
+                    )
+
+        for subject_id, questions in QUESTION_CATALOG.items():
+            for item in questions:
+                source = item.get("source") or {}
+                values = (
+                    subject_id, item["key"], item["topic"], item["question"],
+                    json.dumps(item["answers"], ensure_ascii=False), int(item["correctIndex"]), item["explanation"],
+                    item.get("difficulty", "Базовый"), item.get("origin", "original"), source.get("title"), source.get("url"),
                 )
+                existing = conn.execute("SELECT id FROM questions WHERE content_key=?", (item["key"],)).fetchone()
+                if existing:
+                    conn.execute(
+                        """UPDATE questions SET subject_id=?, content_key=?, topic=?, question=?, answers_json=?, correct_index=?,
+                           explanation=?, difficulty=?, origin=?, source_title=?, source_url=? WHERE id=?""",
+                        (*values, existing["id"]),
+                    )
+                else:
+                    conn.execute(
+                        """INSERT INTO questions(subject_id, content_key, topic, question, answers_json, correct_index, explanation,
+                           difficulty, origin, source_title, source_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", values,
+                    )
         conn.executemany(
             """INSERT INTO store_items(id, title, icon, description, price, kind, value)
                VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -482,9 +455,10 @@ def profile_payload(conn: sqlite3.Connection, user_id: int) -> dict | None:
     answered = int(stats["answered"] or 0)
     correct = int(stats["correct"] or 0)
     completed_lessons = conn.execute(
-        "SELECT COUNT(*) FROM lesson_progress WHERE user_id=?", (user_id,)
+        """SELECT COUNT(*) FROM lesson_progress lp JOIN lessons l ON l.id=lp.lesson_id
+           WHERE lp.user_id=? AND l.content_key IS NOT NULL""", (user_id,)
     ).fetchone()[0]
-    total_lessons = conn.execute("SELECT COUNT(*) FROM lessons").fetchone()[0]
+    total_lessons = conn.execute("SELECT COUNT(*) FROM lessons WHERE content_key IS NOT NULL").fetchone()[0]
     return {
         "id": user["id"],
         "email": user["email"],
@@ -519,26 +493,6 @@ def make_premium_key(conn: sqlite3.Connection, duration_days: int = 30) -> str:
             return key
         except sqlite3.IntegrityError:
             continue
-
-
-def lesson_flashcards(title: str, summary: str, body: str) -> list[dict]:
-    paragraphs = [part.strip() for part in body.split("\n\n") if part.strip()]
-    cards = [
-        {"type": "intro", "title": title, "text": summary},
-    ]
-    labels = ["Главная идея", "Связь с атомной отраслью", "Запомни"]
-    for index, paragraph in enumerate(paragraphs):
-        cards.append({
-            "type": "theory",
-            "title": labels[min(index, len(labels) - 1)],
-            "text": paragraph,
-        })
-    cards.append({
-        "type": "recap",
-        "title": "Проверь себя",
-        "text": "Сформулируй основную мысль урока своими словами и назови один пример её применения в атомной промышленности.",
-    })
-    return cards
 
 
 def build_study_program(conn: sqlite3.Connection, interests: list[str], answers: dict[str, int]) -> tuple[dict, dict]:
@@ -581,7 +535,7 @@ def build_study_program(conn: sqlite3.Connection, interests: list[str], answers:
             reason = "Закрепим знания после приоритетных направлений"
         lesson_ids = [
             int(row["id"])
-            for row in conn.execute("SELECT id FROM lessons WHERE subject_id=? ORDER BY id", (subject_id,)).fetchall()
+            for row in conn.execute("SELECT id FROM lessons WHERE subject_id=? AND content_key IS NOT NULL ORDER BY id", (subject_id,)).fetchall()
         ]
         row = subject_rows.get(subject_id)
         sections.append({
@@ -650,12 +604,12 @@ def local_ai_answer(message: str, subject_id: str | None) -> str:
     with connect() as conn:
         if subject_id and subject_id in SUBJECT_ORDER:
             rows = conn.execute(
-                "SELECT s.name AS subject_name, l.title, l.summary, l.body FROM lessons l JOIN subjects s ON s.id=l.subject_id WHERE l.subject_id=?",
+                "SELECT s.name AS subject_name, l.title, l.summary, l.body FROM lessons l JOIN subjects s ON s.id=l.subject_id WHERE l.subject_id=? AND l.content_key IS NOT NULL",
                 (subject_id,),
             ).fetchall()
         else:
             rows = conn.execute(
-                "SELECT s.name AS subject_name, l.title, l.summary, l.body FROM lessons l JOIN subjects s ON s.id=l.subject_id"
+                "SELECT s.name AS subject_name, l.title, l.summary, l.body FROM lessons l JOIN subjects s ON s.id=l.subject_id WHERE l.content_key IS NOT NULL"
             ).fetchall()
     words = {w.strip('.,!?():;\"«»').lower() for w in query.split() if len(w) > 3}
     def score(row):
@@ -874,7 +828,7 @@ def onboarding_submit():
 def list_subjects():
     with connect() as conn:
         rows = conn.execute(
-            """SELECT s.*, COUNT(DISTINCT l.id) AS lessons_count, COUNT(DISTINCT q.id) AS questions_count
+            """SELECT s.*, COUNT(DISTINCT CASE WHEN l.content_key IS NOT NULL THEN l.id END) AS lessons_count, COUNT(DISTINCT CASE WHEN q.content_key IS NOT NULL THEN q.id END) AS questions_count
                FROM subjects s
                LEFT JOIN lessons l ON l.subject_id = s.id
                LEFT JOIN questions q ON q.subject_id = s.id
@@ -897,7 +851,8 @@ def get_subject(subject_id: str):
         if not subject:
             return jsonify({"error": "Предмет не найден"}), 404
         lessons = conn.execute(
-            "SELECT id, title, summary, body FROM lessons WHERE subject_id = ? ORDER BY id", (subject_id,)
+            """SELECT id, title, summary, body, cards_json, difficulty, duration_minutes, tags_json
+               FROM lessons WHERE subject_id = ? AND content_key IS NOT NULL ORDER BY id""", (subject_id,)
         ).fetchall()
         completed = set()
         if user_id:
@@ -907,7 +862,9 @@ def get_subject(subject_id: str):
     lesson_payload = []
     for row in lessons:
         item = dict(row)
-        item["cards"] = lesson_flashcards(item["title"], item["summary"], item["body"])
+        item["cards"] = json.loads(item.pop("cards_json") or "[]")
+        item["durationMinutes"] = item.pop("duration_minutes")
+        item["tags"] = json.loads(item.pop("tags_json") or "[]")
         item["completed"] = item["id"] in completed
         lesson_payload.append(item)
     return jsonify({**subject_row_to_dict(subject), "lessons": lesson_payload})
@@ -930,12 +887,15 @@ def topics():
         result = []
         for subject in subjects:
             lessons = conn.execute(
-                "SELECT id, title, summary FROM lessons WHERE subject_id=? ORDER BY id", (subject["id"],)
+                """SELECT id, title, summary, difficulty, duration_minutes, tags_json FROM lessons
+                   WHERE subject_id=? AND content_key IS NOT NULL ORDER BY id""", (subject["id"],)
             ).fetchall()
             result.append({
                 **subject_row_to_dict(subject),
                 "lessons": [
-                    {**dict(lesson), "completed": lesson["id"] in completed}
+                    {**{k: v for k, v in dict(lesson).items() if k not in {"duration_minutes", "tags_json"}},
+                     "durationMinutes": lesson["duration_minutes"], "tags": json.loads(lesson["tags_json"] or "[]"),
+                     "completed": lesson["id"] in completed}
                     for lesson in lessons
                 ],
             })
@@ -948,15 +908,18 @@ def complete_lesson(lesson_id: int):
     if error:
         return error
     with connect() as conn:
-        lesson = conn.execute("SELECT id FROM lessons WHERE id=?", (lesson_id,)).fetchone()
+        lesson = conn.execute("SELECT id FROM lessons WHERE id=? AND content_key IS NOT NULL", (lesson_id,)).fetchone()
         if not lesson:
             return jsonify({"error": "Урок не найден"}), 404
         conn.execute(
             "INSERT OR IGNORE INTO lesson_progress(user_id, lesson_id) VALUES (?, ?)",
             (user_id, lesson_id),
         )
-        done = conn.execute("SELECT COUNT(*) FROM lesson_progress WHERE user_id=?", (user_id,)).fetchone()[0]
-        total = conn.execute("SELECT COUNT(*) FROM lessons").fetchone()[0]
+        done = conn.execute(
+            """SELECT COUNT(*) FROM lesson_progress lp JOIN lessons l ON l.id=lp.lesson_id
+               WHERE lp.user_id=? AND l.content_key IS NOT NULL""", (user_id,)
+        ).fetchone()[0]
+        total = conn.execute("SELECT COUNT(*) FROM lessons WHERE content_key IS NOT NULL").fetchone()[0]
     return jsonify({"ok": True, "completedLessons": done, "totalLessons": total})
 
 
@@ -968,13 +931,18 @@ def get_quiz(subject_id: str):
         limit = 5
     with connect() as conn:
         rows = conn.execute(
-            "SELECT id, topic, question, answers_json FROM questions WHERE subject_id = ?", (subject_id,)
+            """SELECT id, topic, question, answers_json, difficulty, origin, source_title, source_url
+               FROM questions WHERE subject_id = ? AND content_key IS NOT NULL""", (subject_id,)
         ).fetchall()
     if not rows:
         return jsonify({"error": "Вопросы не найдены"}), 404
     selected = random.sample(rows, min(limit, len(rows)))
     return jsonify([
-        {"id": row["id"], "topic": row["topic"], "question": row["question"], "answers": json.loads(row["answers_json"])}
+        {
+            "id": row["id"], "topic": row["topic"], "question": row["question"],
+            "answers": json.loads(row["answers_json"]), "difficulty": row["difficulty"], "origin": row["origin"],
+            "source": {"title": row["source_title"], "url": row["source_url"]} if row["source_title"] else None,
+        }
         for row in selected
     ])
 

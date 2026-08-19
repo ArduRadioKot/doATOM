@@ -1,0 +1,233 @@
+{
+  "subjectId": "informatics",
+  "questions": [
+    {
+      "key": "in-q01",
+      "topic": "Python",
+      "question": "Какой тип данных Python удобен для хранения пар «имя параметра → значение»?",
+      "answers": [
+        "dict",
+        "float",
+        "bool",
+        "None"
+      ],
+      "correctIndex": 0,
+      "explanation": "Словарь хранит пары ключ-значение.",
+      "difficulty": "Базовый",
+      "origin": "original",
+      "source": {
+        "title": "Class Central — Introduction to Data Science in Python",
+        "url": "https://www.classcentral.com/course/python-data-analysis-6671"
+      }
+    },
+    {
+      "key": "in-q02",
+      "topic": "Pandas",
+      "question": "Что обычно нужно проверить сразу после загрузки таблицы?",
+      "answers": [
+        "Типы столбцов и пропуски",
+        "Только цвет интерфейса",
+        "Только имя файла",
+        "Частоту процессора"
+      ],
+      "correctIndex": 0,
+      "explanation": "Типы и пропуски напрямую влияют на корректность анализа.",
+      "difficulty": "Базовый",
+      "origin": "original",
+      "source": {
+        "title": "Class Central — Introduction to Data Science in Python",
+        "url": "https://www.classcentral.com/course/python-data-analysis-6671"
+      }
+    },
+    {
+      "key": "in-q03",
+      "topic": "Логика",
+      "question": "Выражение A AND B истинно, когда...",
+      "answers": [
+        "A и B оба истинны",
+        "Хотя бы одно истинно",
+        "Оба ложны",
+        "A и B различны"
+      ],
+      "correctIndex": 0,
+      "explanation": "Логическое И требует истинности обоих операндов.",
+      "difficulty": "Базовый",
+      "origin": "fipi-inspired",
+      "source": {
+        "title": "ФИПИ — открытый банк заданий ОГЭ",
+        "url": "https://fipi.ru/oge/otkrytyy-bank-zadaniy-oge"
+      }
+    },
+    {
+      "key": "in-q04",
+      "topic": "Алгоритмы",
+      "question": "В цикле счётчик увеличивается от 1 до 5 включительно. Сколько раз выполнится тело цикла?",
+      "answers": [
+        "5",
+        "4",
+        "6",
+        "1"
+      ],
+      "correctIndex": 0,
+      "explanation": "Значения 1,2,3,4,5 дают пять итераций.",
+      "difficulty": "Базовый",
+      "origin": "fipi-inspired",
+      "source": {
+        "title": "ФИПИ — открытый банк заданий ОГЭ",
+        "url": "https://fipi.ru/oge/otkrytyy-bank-zadaniy-oge"
+      }
+    },
+    {
+      "key": "in-q05",
+      "topic": "Данные",
+      "question": "Файл содержит 2048 байт. Сколько это килобайт при 1 Кбайт = 1024 байта?",
+      "answers": [
+        "2 Кбайт",
+        "1 Кбайт",
+        "2048 Кбайт",
+        "0,5 Кбайт"
+      ],
+      "correctIndex": 0,
+      "explanation": "2048/1024 = 2.",
+      "difficulty": "Базовый",
+      "origin": "fipi-inspired",
+      "source": {
+        "title": "ФИПИ — открытый банк заданий ОГЭ",
+        "url": "https://fipi.ru/oge/otkrytyy-bank-zadaniy-oge"
+      }
+    },
+    {
+      "key": "in-q06",
+      "topic": "SQL",
+      "question": "Какое слово SQL обычно используется для фильтрации строк по условию?",
+      "answers": [
+        "WHERE",
+        "JOIN",
+        "ORDER",
+        "CREATE"
+      ],
+      "correctIndex": 0,
+      "explanation": "WHERE задаёт условие отбора строк.",
+      "difficulty": "Средний",
+      "origin": "fipi-inspired",
+      "source": {
+        "title": "ФИПИ — открытый банк заданий ЕГЭ",
+        "url": "https://fipi.ru/ege/otkrytyy-bank-zadaniy-ege"
+      }
+    },
+    {
+      "key": "in-q07",
+      "topic": "ML",
+      "question": "Зачем отделять тестовую выборку от обучающей?",
+      "answers": [
+        "Чтобы оценить качество на невидимых модели данных",
+        "Чтобы увеличить число строк",
+        "Чтобы заменить очистку данных",
+        "Чтобы гарантировать 100% точность"
+      ],
+      "correctIndex": 0,
+      "explanation": "Тестовые данные дают независимую оценку обобщения.",
+      "difficulty": "Базовый",
+      "origin": "original",
+      "source": {
+        "title": "Class Central — Machine Learning courses",
+        "url": "https://www.classcentral.com/subject/machine-learning"
+      }
+    },
+    {
+      "key": "in-q08",
+      "topic": "Статистика",
+      "question": "Что обычно устойчивее к единичному очень большому выбросу?",
+      "answers": [
+        "Медиана",
+        "Среднее",
+        "Сумма",
+        "Максимум"
+      ],
+      "correctIndex": 0,
+      "explanation": "Медиана определяется порядком значений и мало меняется от одного экстремального выброса.",
+      "difficulty": "Базовый",
+      "origin": "original",
+      "source": {
+        "title": "Class Central — Statistics for Data Science with Python",
+        "url": "https://www.classcentral.com/course/statistics-for-data-science-python-22313"
+      }
+    },
+    {
+      "key": "in-q09",
+      "topic": "NumPy",
+      "question": "Что означает shape массива?",
+      "answers": [
+        "Размеры по его осям",
+        "Цвет графика",
+        "Версию Python",
+        "Имя переменной"
+      ],
+      "correctIndex": 0,
+      "explanation": "Shape описывает длину массива вдоль каждой оси.",
+      "difficulty": "Базовый",
+      "origin": "original",
+      "source": {
+        "title": "Википедия — NumPy",
+        "url": "https://ru.wikipedia.org/wiki/NumPy"
+      }
+    },
+    {
+      "key": "in-q10",
+      "topic": "Pipeline",
+      "question": "Какое свойство пайплайна важнее всего для повторного анализа?",
+      "answers": [
+        "Воспроизводимость шагов",
+        "Ручное редактирование каждого файла",
+        "Случайное изменение параметров",
+        "Отсутствие журналов"
+      ],
+      "correctIndex": 0,
+      "explanation": "Фиксированные шаги позволяют повторить анализ на новых данных.",
+      "difficulty": "Базовый",
+      "origin": "original",
+      "source": {
+        "title": "Ship That Code — Data Scientist path",
+        "url": "https://shipthatcode.com/paths/data-scientist"
+      }
+    },
+    {
+      "key": "in-q11",
+      "topic": "Регрессия",
+      "question": "Какая задача является регрессией?",
+      "answers": [
+        "Прогноз температуры в градусах",
+        "Определение класса «норма/авария»",
+        "Сортировка файлов по имени",
+        "Проверка пароля"
+      ],
+      "correctIndex": 0,
+      "explanation": "Регрессия предсказывает числовую величину.",
+      "difficulty": "Базовый",
+      "origin": "original",
+      "source": {
+        "title": "Class Central — Machine Learning courses",
+        "url": "https://www.classcentral.com/subject/machine-learning"
+      }
+    },
+    {
+      "key": "in-q12",
+      "topic": "Git",
+      "question": "Зачем аналитику система контроля версий?",
+      "answers": [
+        "Хранить историю изменений кода и возвращаться к версиям",
+        "Увеличивать размер CSV",
+        "Заменять базу данных",
+        "Измерять температуру"
+      ],
+      "correctIndex": 0,
+      "explanation": "Git фиксирует изменения и помогает воспроизводить состояние проекта.",
+      "difficulty": "Базовый",
+      "origin": "original",
+      "source": {
+        "title": "Википедия — Git",
+        "url": "https://ru.wikipedia.org/wiki/Git"
+      }
+    }
+  ]
+}

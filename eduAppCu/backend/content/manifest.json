@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "description": "Canonical learning content for ДуАТОМ. Course text is original educational synthesis with per-card source links; FIPI-tagged questions are original adaptations by topic/format, not verbatim copies.",
+  "courseFiles": [
+    "courses/physics.json",
+    "courses/informatics.json",
+    "courses/chemistry.json",
+    "courses/biology.json",
+    "courses/math.json",
+    "courses/history.json"
+  ],
+  "questionFiles": [
+    "questions/physics.json",
+    "questions/informatics.json",
+    "questions/chemistry.json",
+    "questions/biology.json",
+    "questions/math.json",
+    "questions/history.json"
+  ],
+  "counts": {
+    "subjects": 6,
+    "lessons": 50,
+    "flashcards": 250,
+    "questions": 72
+  }
+}

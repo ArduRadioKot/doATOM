@@ -1,0 +1,233 @@
+{
+  "subjectId": "math",
+  "questions": [
+    {
+      "key": "ma-q01",
+      "topic": "Проценты",
+      "question": "Величина выросла с 80 до 92. На сколько процентов она выросла относительно исходного значения?",
+      "answers": [
+        "15%",
+        "12%",
+        "92%",
+        "6,5%"
+      ],
+      "correctIndex": 0,
+      "explanation": "(92−80)/80·100% = 15%.",
+      "difficulty": "Базовый",
+      "origin": "fipi-inspired",
+      "source": {
+        "title": "ФИПИ — открытый банк заданий ОГЭ",
+        "url": "https://fipi.ru/oge/otkrytyy-bank-zadaniy-oge"
+      }
+    },
+    {
+      "key": "ma-q02",
+      "topic": "Степени",
+      "question": "Чему равно 2³·2²?",
+      "answers": [
+        "32",
+        "16",
+        "64",
+        "10"
+      ],
+      "correctIndex": 0,
+      "explanation": "При умножении степеней с одинаковым основанием показатели складываются: 2⁵ = 32.",
+      "difficulty": "Базовый",
+      "origin": "fipi-inspired",
+      "source": {
+        "title": "ФИПИ — открытый банк заданий ОГЭ",
+        "url": "https://fipi.ru/oge/otkrytyy-bank-zadaniy-oge"
+      }
+    },
+    {
+      "key": "ma-q03",
+      "topic": "Графики",
+      "question": "Линейная функция имеет вид y = 3x + 2. Чему равен y при x = 4?",
+      "answers": [
+        "14",
+        "12",
+        "9",
+        "18"
+      ],
+      "correctIndex": 0,
+      "explanation": "3·4 + 2 = 14.",
+      "difficulty": "Базовый",
+      "origin": "fipi-inspired",
+      "source": {
+        "title": "ФИПИ — открытый банк заданий ОГЭ",
+        "url": "https://fipi.ru/oge/otkrytyy-bank-zadaniy-oge"
+      }
+    },
+    {
+      "key": "ma-q04",
+      "topic": "Вероятность",
+      "question": "В коробке 10 одинаковых карточек, 3 из них отмечены. Вероятность случайно выбрать отмеченную карточку равна...",
+      "answers": [
+        "0,3",
+        "3",
+        "0,7",
+        "10/3"
+      ],
+      "correctIndex": 0,
+      "explanation": "P = 3/10 = 0,3.",
+      "difficulty": "Базовый",
+      "origin": "fipi-inspired",
+      "source": {
+        "title": "ФИПИ — открытый банк заданий ОГЭ",
+        "url": "https://fipi.ru/oge/otkrytyy-bank-zadaniy-oge"
+      }
+    },
+    {
+      "key": "ma-q05",
+      "topic": "Полураспад",
+      "question": "После трёх периодов полураспада останется доля...",
+      "answers": [
+        "1/8",
+        "1/3",
+        "3/8",
+        "1/6"
+      ],
+      "correctIndex": 0,
+      "explanation": "(1/2)^3 = 1/8.",
+      "difficulty": "Базовый",
+      "origin": "original",
+      "source": {
+        "title": "Википедия — Период полураспада",
+        "url": "https://ru.wikipedia.org/wiki/Период_полураспада"
+      }
+    },
+    {
+      "key": "ma-q06",
+      "topic": "Мощность",
+      "question": "Установка мощностью 500 МВт работает 4 часа. Энергия равна...",
+      "answers": [
+        "2000 МВт·ч",
+        "125 МВт·ч",
+        "504 МВт·ч",
+        "4 МВт·ч"
+      ],
+      "correctIndex": 0,
+      "explanation": "E = Pt = 500·4.",
+      "difficulty": "Базовый",
+      "origin": "original",
+      "source": {
+        "title": "Авторская задача ДуАТОМ",
+        "url": null
+      }
+    },
+    {
+      "key": "ma-q07",
+      "topic": "КПД",
+      "question": "КПД 40%, входная мощность 1000 кВт. Полезная мощность...",
+      "answers": [
+        "400 кВт",
+        "2500 кВт",
+        "1040 кВт",
+        "40 кВт"
+      ],
+      "correctIndex": 0,
+      "explanation": "Pпол = 0,4·1000 = 400 кВт.",
+      "difficulty": "Базовый",
+      "origin": "original",
+      "source": {
+        "title": "Авторская задача ДуАТОМ",
+        "url": null
+      }
+    },
+    {
+      "key": "ma-q08",
+      "topic": "Вероятность",
+      "question": "Вероятность отказа двух независимых каналов по 0,1. Вероятность одновременного отказа...",
+      "answers": [
+        "0,01",
+        "0,2",
+        "0,1",
+        "0,9"
+      ],
+      "correctIndex": 0,
+      "explanation": "0,1·0,1 = 0,01.",
+      "difficulty": "Базовый",
+      "origin": "original",
+      "source": {
+        "title": "Википедия — Теория вероятностей",
+        "url": "https://ru.wikipedia.org/wiki/Теория_вероятностей"
+      }
+    },
+    {
+      "key": "ma-q09",
+      "topic": "Статистика",
+      "question": "В наборе 1, 2, 2, 3, 100 медиана равна...",
+      "answers": [
+        "2",
+        "21,6",
+        "100",
+        "3"
+      ],
+      "correctIndex": 0,
+      "explanation": "После сортировки центральное значение — 2.",
+      "difficulty": "Базовый",
+      "origin": "original",
+      "source": {
+        "title": "Class Central — Statistics for Data Science with Python",
+        "url": "https://www.classcentral.com/course/statistics-for-data-science-python-22313"
+      }
+    },
+    {
+      "key": "ma-q10",
+      "topic": "Единицы",
+      "question": "2,5 ГВт — это...",
+      "answers": [
+        "2500 МВт",
+        "25 МВт",
+        "250 МВт",
+        "25000 МВт"
+      ],
+      "correctIndex": 0,
+      "explanation": "1 ГВт = 1000 МВт.",
+      "difficulty": "Базовый",
+      "origin": "original",
+      "source": {
+        "title": "Авторская задача ДуАТОМ",
+        "url": null
+      }
+    },
+    {
+      "key": "ma-q11",
+      "topic": "Логарифмы",
+      "question": "Если 2^x = 8, то x равен...",
+      "answers": [
+        "3",
+        "4",
+        "2",
+        "8"
+      ],
+      "correctIndex": 0,
+      "explanation": "8 = 2³.",
+      "difficulty": "Базовый",
+      "origin": "original",
+      "source": {
+        "title": "Авторская задача ДуАТОМ",
+        "url": null
+      }
+    },
+    {
+      "key": "ma-q12",
+      "topic": "Погрешность",
+      "question": "Измерено 100 ± 2 единицы. Относительная погрешность примерно...",
+      "answers": [
+        "2%",
+        "0,02%",
+        "50%",
+        "102%"
+      ],
+      "correctIndex": 0,
+      "explanation": "2/100·100% = 2%.",
+      "difficulty": "Базовый",
+      "origin": "original",
+      "source": {
+        "title": "IEPhO / pho.rs — экспериментальная физика",
+        "url": "https://ie.pho.rs/"
+      }
+    }
+  ]
+}

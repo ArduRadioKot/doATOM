@@ -1,7 +1,21 @@
 import { FormEvent, ReactNode, useEffect, useMemo, useState } from 'react';
 
-type Flashcard = { type: 'intro' | 'theory' | 'recap'; title: string; text: string };
-type Lesson = { id: number; title: string; summary: string; body?: string; cards?: Flashcard[]; completed?: boolean };
+type SourceLink = { title: string; url: string | null };
+type FlashcardFormula = { expression: string; note?: string };
+type FlashcardExample = { title: string; text: string };
+type FlashcardCode = { language: string; code: string; output?: string };
+type Flashcard = {
+  type: 'intro' | 'theory' | 'recap';
+  title: string;
+  text: string;
+  details?: string[];
+  formula?: FlashcardFormula;
+  example?: FlashcardExample;
+  code?: FlashcardCode;
+  takeaway?: string;
+  source: SourceLink;
+};
+type Lesson = { id: number; title: string; summary: string; body?: string; cards?: Flashcard[]; completed?: boolean; difficulty?: string; durationMinutes?: number; tags?: string[] };
 type Subject = {
   id: string;
   name: string;
@@ -12,7 +26,7 @@ type Subject = {
 };
 type SubjectDetails = Subject & { lessons: Lesson[] };
 type TopicGroup = { id: string; name: string; icon: string; description: string; lessons: Lesson[] };
-type Question = { id: number; topic: string; question: string; answers: string[] };
+type Question = { id: number; topic: string; question: string; answers: string[]; difficulty?: string; origin?: 'original' | 'fipi-inspired'; source?: SourceLink | null };
 type Badge = { id: string; title: string; icon: string };
 type Subscription = { plan: string; name: string; isPremium: boolean; expiresAt: string | null };
 type StudyProgramSection = {
@@ -84,7 +98,8 @@ type IconName =
   | 'atom' | 'cpu' | 'flask' | 'dna' | 'calculator' | 'landmark'
   | 'help-circle' | 'zap' | 'microscope' | 'arrow-right' | 'arrow-left'
   | 'check' | 'x' | 'lock' | 'send' | 'telegram' | 'logout' | 'settings'
-  | 'coins' | 'chart' | 'target' | 'layers' | 'spark' | 'menu' | 'close';
+  | 'coins' | 'chart' | 'target' | 'layers' | 'spark' | 'menu' | 'close'
+  | 'list' | 'sigma' | 'lightbulb' | 'code' | 'check-circle';
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(path, {
@@ -156,6 +171,11 @@ function Icon({ name, size = 22, strokeWidth = 1.9 }: { name: IconName | string;
     spark: <><path d="M12 2l1.4 5.1L18 9l-4.6 1.9L12 16l-1.4-5.1L6 9l4.6-1.9z" {...common}/><path d="m19 16 .7 2.3L22 19l-2.3.7L19 22l-.7-2.3L16 19l2.3-.7z" {...common}/></>,
     menu: <path d="M4 7h16M4 12h16M4 17h16" {...common}/>,
     close: <><path d="M6 6l12 12M18 6 6 18" {...common}/></>,
+    list: <><path d="M9 6h11M9 12h11M9 18h11" {...common}/><circle cx="4" cy="6" r="1" fill="currentColor"/><circle cx="4" cy="12" r="1" fill="currentColor"/><circle cx="4" cy="18" r="1" fill="currentColor"/></>,
+    sigma: <><path d="M18 4H7l6 8-6 8h11" {...common}/></>,
+    lightbulb: <><path d="M9 18h6M10 21h4" {...common}/><path d="M8.5 14.5A6 6 0 1 1 15.5 14.5c-.9.8-1.5 1.5-1.5 3h-4c0-1.5-.6-2.2-1.5-3Z" {...common}/></>,
+    code: <><path d="m8 9-4 3 4 3M16 9l4 3-4 3M14 5l-4 14" {...common}/></>,
+    'check-circle': <><circle cx="12" cy="12" r="9" {...common}/><path d="m8 12 2.5 2.5L16.5 8.5" {...common}/></>,
   };
   return <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" focusable="false">{paths[name] || paths.atom}</svg>;
 }
@@ -549,6 +569,11 @@ function TasksScreen({ subjects, initialSubjectId, onSubjectChange, user, setUse
     {started && !finished && current && <section className="panel quiz-card">
       <div className="quiz-top"><span className="topic-label">{current.topic}</span><span>Вопрос {index + 1} из {questions.length}</span></div>
       <div className="progress-track quiz-progress"><span style={{ width: `${progress}%` }} /></div>
+      <div className="question-meta">
+        {current.difficulty && <span>{current.difficulty}</span>}
+        {current.origin === 'fipi-inspired' && <span>Адаптировано по формату ФИПИ</span>}
+        {current.source?.url ? <a href={current.source.url} target="_blank" rel="noreferrer"><Icon name="book-open" size={15}/>{current.source.title}</a> : current.source?.title ? <span>{current.source.title}</span> : null}
+      </div>
       <h2>{current.question}</h2>
       <div className="answers">{current.answers.map((answer, answerIndex) => {
         if (hidden.includes(answerIndex)) return <button key={answerIndex} className="answer hidden-answer" disabled><span>{String.fromCharCode(65 + answerIndex)}</span><em>Вариант скрыт подсказкой</em></button>;
@@ -612,7 +637,31 @@ function FlashcardLesson({ subject, lesson, user, setUser, onBack, onTasks }: {
         <div className="flashcard-visual"><Icon name={current.type === 'recap' ? 'target' : subject.icon} size={76} strokeWidth={1.35}/></div>
         <span className="eyebrow">{current.type === 'intro' ? 'НАЧАЛО УРОКА' : current.type === 'recap' ? 'ЗАКРЕПЛЕНИЕ' : 'ТЕОРИЯ'}</span>
         <h2>{current.title}</h2>
-        <p>{current.text}</p>
+        <p className="flashcard-lead">{current.text}</p>
+        {(current.details?.length || current.formula || current.example || current.code || current.takeaway) && <div className="flashcard-rich">
+          {current.details?.length ? <div className="flashcard-section flashcard-points">
+            <div className="flashcard-section-title"><Icon name="list" size={17}/>Ключевые пункты</div>
+            <ul>{current.details.map((item, index) => <li key={index}>{item}</li>)}</ul>
+          </div> : null}
+          {current.formula ? <div className="flashcard-section formula-box">
+            <div className="flashcard-section-title"><Icon name="sigma" size={17}/>Формула</div>
+            <code className="formula-expression">{current.formula.expression}</code>
+            {current.formula.note && <p>{current.formula.note}</p>}
+          </div> : null}
+          {current.example ? <div className="flashcard-section example-box">
+            <div className="flashcard-section-title"><Icon name="lightbulb" size={17}/>{current.example.title}</div>
+            <p>{current.example.text}</p>
+          </div> : null}
+          {current.code ? <div className="flashcard-section code-box">
+            <div className="code-box-head"><span><Icon name="code" size={17}/>Пример кода</span><small>{current.code.language}</small></div>
+            <pre><code>{current.code.code}</code></pre>
+            {current.code.output && <div className="code-output"><small>Результат</small><pre>{current.code.output}</pre></div>}
+          </div> : null}
+          {current.takeaway ? <div className="flashcard-takeaway"><Icon name="check-circle" size={18}/><span><strong>Запомни:</strong> {current.takeaway}</span></div> : null}
+        </div>}
+        <a className="flashcard-source" href={current.source.url || '#'} target="_blank" rel="noreferrer">
+          <Icon name="book-open" size={16}/><span><small>Источник</small>{current.source.title}</span>
+        </a>
       </article>
       <div className="flashcard-controls">
         <button className="secondary-button" onClick={() => setCardIndex((v) => Math.max(0, v - 1))} disabled={cardIndex === 0}><Icon name="arrow-left" size={18}/>Назад</button>
@@ -658,7 +707,7 @@ function TopicsScreen({ subjects, initialSubjectId, user, setUser, onSubjectChan
         <div className="topic-group-head"><div className="topic-group-icon"><Icon name={group.icon} size={28}/></div><div><h2>{group.name}</h2><p>{group.description}</p></div><div className="topic-counter">{completeCount}/{group.lessons.length}</div></div>
         <div className="lesson-rows">{group.lessons.map((lesson, index) => <button key={lesson.id} onClick={() => openLesson(group.id, lesson.id)} disabled={loadingLesson}>
           <span className={`lesson-number ${lesson.completed ? 'complete' : ''}`}>{lesson.completed ? <Icon name="check" size={17}/> : index + 1}</span>
-          <span className="lesson-row-copy"><strong>{lesson.title}</strong><small>{lesson.summary}</small></span>
+          <span className="lesson-row-copy"><strong>{lesson.title}</strong><small>{lesson.summary}</small><span className="lesson-meta">{lesson.difficulty || 'Базовый'}{lesson.durationMinutes ? ` · ${lesson.durationMinutes} мин` : ''}{lesson.tags?.length ? ` · ${lesson.tags.slice(0, 2).join(' · ')}` : ''}</span></span>
           <span className="lesson-row-status">{lesson.completed ? 'Пройдено' : 'Открыть'} <Icon name="arrow-right" size={17}/></span>
         </button>)}</div>
       </section>;
