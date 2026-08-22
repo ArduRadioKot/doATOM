@@ -1741,3 +1741,124 @@ footer { color: #9A9FAC; }
   .learning-snapshot > button { grid-template-columns: 42px minmax(0,1fr) 18px; min-width: 245px; }
   .subject-catalog { padding: 16px; }
 }
+
+/* ========================================================================
+   Single-course + mobile adapter adjustments
+   ======================================================================== */
+.landing-subject-grid { grid-template-columns: minmax(0, 1fr); }
+.landing-subject-card { max-width: 760px; }
+.dashboard-subjects { grid-template-columns: minmax(0, 1fr); }
+.subject-card { min-height: 104px; }
+.learning-snapshot { grid-template-columns: minmax(0, 1fr); }
+.learning-snapshot > button { grid-template-columns: minmax(0, 1fr) auto auto; }
+.continue-grid { grid-template-columns: minmax(0, 1fr); }
+.course-card { width: 100%; }
+.course-cover { min-height: 150px; }
+.course-cover-label { max-width: 70%; }
+.course-cover-art { display: none !important; }
+.program-list button { grid-template-columns: 28px minmax(0,1fr) auto; }
+.flashcard-subject { padding: 7px 10px; border-radius: 999px; background: #F3F5F8; color: var(--text-soft); }
+.flashcard-subject span { display: none !important; }
+
+@media (max-width: 900px) {
+  .app-header { position: sticky; top: 0; z-index: 35; background: rgba(255,255,255,.98); }
+  .header-search { min-width: 0; }
+  .header-search input { min-width: 0; }
+  .bottom-nav { grid-template-columns: repeat(5, minmax(0,1fr)); }
+  .bottom-nav button:nth-child(5) { display: none; }
+  .bottom-nav button { min-height: 58px; touch-action: manipulation; }
+  .bottom-nav small { font-size: 10px; }
+  .sidebar { width: min(82vw, 320px); }
+  .content-area { overflow-x: clip; }
+  .panel { max-width: 100%; }
+  .continue-grid { display: grid; overflow: visible; }
+  .course-card, .course-card:nth-child(3) { min-width: 0; }
+  .dashboard-insights { grid-template-columns: 1fr 1fr; }
+  .activity-panel { display: block; }
+  .ai-mentor-card { display: block; }
+}
+
+@media (max-width: 720px) {
+  .app-header { height: auto; min-height: 64px; padding: 8px 10px; align-items: center; }
+  .header-search { order: 3; flex-basis: 100%; width: 100%; height: 42px; }
+  .header-actions { margin-left: auto; }
+  .content-area { padding: 14px 10px calc(82px + env(safe-area-inset-bottom)); }
+  .dashboard-workspace, .dashboard-main-column { gap: 12px; }
+  .dashboard-hero { padding: 22px 18px; border-radius: 18px; }
+  .dashboard-hero h1 { font-size: clamp(28px, 9vw, 38px); }
+  .dashboard-hero p { font-size: 13px; line-height: 1.55; }
+  .learning-snapshot { display: grid; overflow: visible; }
+  .learning-snapshot > button { min-width: 0; width: 100%; grid-template-columns: minmax(0,1fr) auto 18px; padding: 12px 13px; }
+  .continue-grid { display: grid; overflow: visible; }
+  .course-card, .course-card:nth-child(3) { width: 100%; min-width: 0; }
+  .course-cover { min-height: 132px; }
+  .dashboard-insights { grid-template-columns: 1fr; }
+  .dashboard-profile-card, .activity-panel, .ai-mentor-card { display: block; }
+  .subject-card { padding: 14px; }
+  .subject-copy strong { font-size: 16px; }
+  .topic-group-head { grid-template-columns: minmax(0,1fr) auto; gap: 10px; }
+  .topic-group-icon { display: none; }
+  .lesson-rows button { grid-template-columns: 34px minmax(0,1fr); gap: 10px; }
+  .lesson-row-status { grid-column: 2; justify-self: start; }
+  .lesson-toolbar { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  .lesson-progress { grid-column: 1; width: 100%; }
+  .flashcard { min-height: 0; padding: 22px 16px 20px; }
+  .flashcard > h2 { font-size: clamp(24px, 7vw, 31px); }
+  .flashcard-rich { margin-top: 18px; }
+  .flashcard-section { padding: 13px; }
+  .flashcard-source { align-self: stretch; }
+  .flashcard-controls { position: sticky; bottom: calc(69px + env(safe-area-inset-bottom)); padding: 8px 0; background: var(--page); }
+  .chat-layout { min-height: calc(100dvh - 180px); grid-template-columns: 1fr; }
+  .chat-sidebar { padding: 10px; border-right: 0; border-bottom: 1px solid var(--line); }
+  .assistant-card { display: none; }
+  .chat-subject-list { display: flex; overflow-x: auto; }
+  .chat-subject-list button { flex: 0 0 auto; }
+  .chat-messages { min-height: 340px; max-height: none; padding: 14px 11px; }
+  .message-bubble { max-width: 88%; }
+  .quick-prompts { padding: 8px 10px 0; overflow-x: auto; flex-wrap: nowrap; }
+  .quick-prompts button { flex: 0 0 auto; white-space: nowrap; }
+  .chat-input { padding: 10px; }
+  .send-button { width: 46px; min-width: 46px; padding: 0; justify-content: center; }
+  .send-button span { display: none; }
+  .profile-header { flex-wrap: wrap; }
+  .profile-coins { flex: 1 0 100%; }
+  .field-row { grid-template-columns: 1fr; }
+  .auth-modal { width: 100%; max-height: min(92dvh, 760px); border-radius: 22px 22px 0 0; margin: auto 0 0; padding: 24px 18px calc(22px + env(safe-area-inset-bottom)); }
+  .modal-backdrop { align-items: end; padding: 0; }
+  .landing-header-inner { gap: 8px; }
+  .landing-hero-visual { display: none; }
+  .landing-hero-inner { grid-template-columns: 1fr; }
+  .landing-subject-card { max-width: none; }
+}
+
+@media (max-width: 430px) {
+  .header-search input::placeholder { color: #A4A9B4; }
+  .welcome-actions { display: grid; grid-template-columns: 1fr; }
+  .welcome-actions button { width: 100%; }
+  .section-head { align-items: flex-start; }
+  .section-head h2 { font-size: 20px; }
+  .program-list button { grid-template-columns: 26px minmax(0,1fr); }
+  .program-base { grid-column: 2; justify-self: start; }
+  .program-list button > svg { display: none; }
+  .course-card-body { padding: 13px; }
+  .flashcard-controls { grid-template-columns: 1fr 1fr; }
+  .flashcard-controls button { min-height: 46px; }
+  .bottom-nav small { font-size: 9px; }
+}
+.single-course-filter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+}
+.single-course-filter strong { color: var(--accent); font-size: 13px; }
+.single-course-filter span { color: var(--text-soft); font-size: 11px; text-align: right; }
+.topic-group-head > div:first-child { min-width: 0; flex: 1; }
+.topic-group-head > .topic-counter { flex: 0 0 auto; }
+
+@media (max-width: 720px) {
+  .single-course-filter { align-items: flex-start; flex-direction: column; }
+  .single-course-filter span { text-align: left; }
+}
+.topic-group-head > div.topic-counter { min-width: auto; flex: 0 0 auto; }

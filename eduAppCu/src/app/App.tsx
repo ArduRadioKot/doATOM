@@ -101,13 +101,29 @@ type IconName =
   | 'coins' | 'chart' | 'target' | 'layers' | 'spark' | 'menu' | 'close'
   | 'list' | 'sigma' | 'lightbulb' | 'code' | 'check-circle' | 'search';
 
+function getDeviceId(): string {
+  const key = 'duatom_device_id_v1';
+  try {
+    const existing = window.localStorage.getItem(key);
+    if (existing) return existing;
+    const generated = typeof window.crypto?.randomUUID === 'function'
+      ? window.crypto.randomUUID()
+      : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
+    window.localStorage.setItem(key, generated);
+    return generated;
+  } catch {
+    return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
+  }
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  const headers = new Headers(options?.headers);
+  headers.set('X-Device-ID', getDeviceId());
+  if (options?.body) headers.set('Content-Type', 'application/json');
   const response = await fetch(path, {
     credentials: 'include',
     ...options,
-    headers: options?.body
-      ? { 'Content-Type': 'application/json', ...(options.headers || {}) }
-      : options?.headers,
+    headers,
   });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data.error || 'Ошибка запроса');
@@ -134,7 +150,7 @@ const api = {
   selectBadge: (itemId: string) => request<User>('/api/profile/badge', { method: 'POST', body: JSON.stringify({ itemId }) }),
   chat: (message: string, subjectId: string) => request<{ content: string }>('/api/chat', { method: 'POST', body: JSON.stringify({ message, subjectId }) }),
   activate: (key: string) => request<{ subscription: Subscription; message: string }>('/api/subscription/activate', { method: 'POST', body: JSON.stringify({ key }) }),
-  config: () => request<{ telegramBotUrl: string; coinReward: number }>('/api/config'),
+  config: () => request<{ telegramBotUrl: string; coinReward: number; aiProvider: 'openrouter'; aiConfigured: boolean }>('/api/config'),
 };
 
 function Icon({ name, size = 22, strokeWidth = 1.9 }: { name: IconName | string; size?: number; strokeWidth?: number }) {
@@ -232,7 +248,7 @@ function AuthModal({ onClose, onAuth, initialMode = 'login' }: { onClose: () => 
         </div>}
         <label>Почта<input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required /></label>
         <label>Пароль<input type="password" value={password} onChange={(e) => setPassword(e.target.value)} minLength={8} required /></label>
-        {mode === 'register' && <small className="form-hint">Минимум 8 символов. После регистрации — выбор интересов и 8 коротких вопросов для настройки обучения. На баланс начисляется 20 атомкоинов.</small>}
+        {mode === 'register' && <small className="form-hint">Минимум 8 символов. На одном устройстве можно зарегистрировать только один аккаунт. После регистрации — выбор интересов и 6 коротких вопросов. На баланс начисляется 20 атомкоинов.</small>}
         {error && <div className="inline-error">{error}</div>}
         <button className="primary-button full" disabled={loading}>{loading ? 'Подождите' : mode === 'login' ? 'Войти' : 'Зарегистрироваться'}</button>
       </form>
@@ -334,7 +350,7 @@ function OnboardingScreen({ user, onComplete, onLogout }: { user: User; onComple
       {step === 'quiz' && currentQuestion && <section className="onboarding-card knowledge-card">
         <div className="knowledge-head"><div><span className="eyebrow">ШАГ 2 ИЗ 2</span><h1>Небольшая проверка знаний</h1><p>Оценка нужна только для выбора точки старта. На баланс и доступ к урокам результат не влияет.</p></div><strong>{questionIndex + 1} / {data?.questions.length}</strong></div>
         <div className="progress-track onboarding-progress"><span style={{ width: `${quizProgress}%` }} /></div>
-        <div className="knowledge-question"><span className="knowledge-subject"><Icon name={subjectIcon(currentQuestion.subjectId)} size={19}/>{subjectName(currentQuestion.subjectId)}</span><h2>{currentQuestion.question}</h2>
+        <div className="knowledge-question"><span className="knowledge-subject">{subjectName(currentQuestion.subjectId)}</span><h2>{currentQuestion.question}</h2>
           <div className="knowledge-answers">{currentQuestion.answers.map((answer, answerIndex) => <button key={answerIndex} className={answers[currentQuestion.id] === answerIndex ? 'active' : ''} onClick={() => setAnswers((current) => ({ ...current, [currentQuestion.id]: answerIndex }))}><span>{String.fromCharCode(65 + answerIndex)}</span><strong>{answer}</strong>{answers[currentQuestion.id] === answerIndex && <Icon name="check" size={18}/>}</button>)}</div>
         </div>
         <div className="onboarding-actions"><button className="secondary-button" onClick={() => questionIndex ? setQuestionIndex((value) => value - 1) : setStep('interests')}><Icon name="arrow-left" size={18}/>Назад</button><button className="primary-button" disabled={answers[currentQuestion.id] === undefined || submitting} onClick={advanceQuiz}>{submitting ? 'Составляем программу' : questionIndex === (data?.questions.length || 1) - 1 ? 'Составить программу' : 'Следующий вопрос'} {!submitting && <Icon name="arrow-right" size={18}/>}</button></div>
@@ -342,8 +358,8 @@ function OnboardingScreen({ user, onComplete, onLogout }: { user: User; onComple
 
       {step === 'result' && resultUser && program && <section className="onboarding-card onboarding-result">
         <div className="result-mark"><Icon name="target" size={42}/></div><span className="eyebrow">ПРОГРАММА ГОТОВА</span><h1>{program.level || 'Персональная программа'}</h1><p>{program.levelNote}</p>
-        <div className="baseline-score"><div><strong>{assessment?.percent ?? 0}%</strong><span>входной тест</span></div><div><strong>{selected.length}</strong><span>интересных направлений</span></div><div><strong>{program.focusSubjects?.length ?? 0}</strong><span>приоритетных предмета</span></div></div>
-        <div className="focus-list">{(program.sections || []).slice(0, 3).map((section, index) => <article key={section.subjectId}><span className="focus-rank">{index + 1}</span><span className="focus-icon"><Icon name={section.icon} size={23}/></span><div><strong>{section.name}</strong><small>{section.reason}</small></div><span className="focus-score">База {section.scorePct}%</span></article>)}</div>
+        <div className="baseline-score"><div><strong>{assessment?.percent ?? 0}%</strong><span>входной тест</span></div><div><strong>{selected.length}</strong><span>интересных направлений</span></div><div><strong>{program.focusSubjects?.length ?? 0}</strong><span>приоритетных курсов</span></div></div>
+        <div className="focus-list">{(program.sections || []).slice(0, 3).map((section, index) => <article key={section.subjectId}><span className="focus-rank">{index + 1}</span><div><strong>{section.name}</strong><small>{section.reason}</small></div><span className="focus-score">База {section.scorePct}%</span></article>)}</div>
         <button className="primary-button result-continue" onClick={() => onComplete(resultUser)}>Перейти к обучению <Icon name="arrow-right" size={18}/></button>
       </section>}
     </main>
@@ -351,23 +367,12 @@ function OnboardingScreen({ user, onComplete, onLogout }: { user: User; onComple
 }
 
 function subjectName(subjectId: string) {
-  const names: Record<string, string> = { physics: 'Физика', informatics: 'Информатика', chemistry: 'Химия', biology: 'Биология', math: 'Математика', history: 'История отрасли' };
+  const names: Record<string, string> = { informatics: 'Информатика' };
   return names[subjectId] || 'Предмет';
 }
 
-function subjectIcon(subjectId: string): IconName {
-  const icons: Record<string, IconName> = { physics: 'atom', informatics: 'cpu', chemistry: 'flask', biology: 'dna', math: 'calculator', history: 'landmark' };
-  return icons[subjectId] || 'book-open';
-}
-
-
-const landingSubjects: Array<{ name: string; icon: IconName; text: string }> = [
-  { name: 'Физика', icon: 'atom', text: 'Цепная реакция, теплообмен, излучение и устройство энергетических установок.' },
-  { name: 'Информатика', icon: 'cpu', text: 'Датчики, алгоритмы, данные и автоматизированные системы управления.' },
-  { name: 'Химия', icon: 'flask', text: 'Изотопы, ядерное топливо, материалы и водно-химические процессы.' },
-  { name: 'Биология', icon: 'dna', text: 'Радиобиология, дозиметрия и применение атомных технологий в медицине.' },
-  { name: 'Математика', icon: 'calculator', text: 'Период полураспада, мощность, КПД и инженерные расчёты.' },
-  { name: 'История отрасли', icon: 'landmark', text: 'Ключевые этапы развития отечественной атомной промышленности.' },
+const landingSubjects: Array<{ name: string; text: string }> = [
+  { name: 'Информатика', text: 'Один цельный курс: Python, алгоритмы, функции, структуры данных, файлы, JSON, ошибки и модули.' },
 ];
 
 function LandingScreen({ onLogin, onRegister, telegramUrl, backendError }: {
@@ -395,8 +400,8 @@ function LandingScreen({ onLogin, onRegister, telegramUrl, backendError }: {
         <div className="landing-hero-inner">
           <div className="landing-hero-copy">
             <span className="landing-kicker">ОБРАЗОВАНИЕ В КОНТЕКСТЕ АТОМНОЙ ОТРАСЛИ</span>
-            <h1>Понимай школьные предметы через реальные задачи атомной промышленности</h1>
-            <p>Короткие уроки, флешкарточки, задания, AI-помощник и система прогресса в единой учебной среде.</p>
+            <h1>Освой информатику через один последовательный курс</h1>
+            <p>Короткие уроки по Python и алгоритмам, задания, AI-помощник через OpenRouter и система прогресса в единой учебной среде.</p>
             <div className="landing-hero-actions">
               <button className="landing-main-cta" onClick={onRegister}>Создать аккаунт <Icon name="arrow-right" size={19} /></button>
               <button className="landing-secondary-cta" onClick={onLogin}>У меня уже есть аккаунт</button>
@@ -415,16 +420,16 @@ function LandingScreen({ onLogin, onRegister, telegramUrl, backendError }: {
       {backendError && <div className="landing-system-error"><Icon name="x" size={18}/><span>{backendError}. Запусти Flask backend на порту 5001.</span></div>}
 
       <section className="landing-section">
-        <div className="landing-section-heading"><span className="eyebrow">НАПРАВЛЕНИЯ</span><h2>Шесть предметов, одна общая тема</h2><p>Каждый урок связывает школьную программу с технологиями, профессиями и историей атомной отрасли.</p></div>
+        <div className="landing-section-heading"><span className="eyebrow">КУРС</span><h2>Один курс по информатике</h2><p>Все уроки и задания собраны вокруг одной программы и используют один источник — официальный Python 3 Tutorial.</p></div>
         <div className="landing-subject-grid">
-          {landingSubjects.map((subject) => <article key={subject.name} className="landing-subject-card"><span><Icon name={subject.icon} size={25}/></span><h3>{subject.name}</h3><p>{subject.text}</p></article>)}
+          {landingSubjects.map((subject) => <article key={subject.name} className="landing-subject-card"><h3>{subject.name}</h3><p>{subject.text}</p></article>)}
         </div>
       </section>
 
       <section className="landing-section landing-learning-section">
         <div className="landing-learning-copy"><span className="eyebrow">КАК ПРОХОДИТ ОБУЧЕНИЕ</span><h2>От короткой теории к закреплению</h2><p>Вместо длинных конспектов — последовательные карточки. После урока можно сразу проверить себя и получить награду за правильные ответы.</p><button className="secondary-button" onClick={onRegister}>Начать обучение</button></div>
         <div className="landing-steps">
-          <article><span>01</span><div><Icon name="book-open"/><h3>Открой тему</h3><p>Выбери предмет и нужный урок из каталога.</p></div></article>
+          <article><span>01</span><div><Icon name="book-open"/><h3>Открой тему</h3><p>Открой курс информатики и выбери нужный урок.</p></div></article>
           <article><span>02</span><div><Icon name="layers"/><h3>Пройди карточки</h3><p>Изучай материал небольшими смысловыми блоками.</p></div></article>
           <article><span>03</span><div><Icon name="clipboard"/><h3>Ответь на вопросы</h3><p>Закрепи тему на заданиях, связанных с атомной отраслью.</p></div></article>
           <article><span>04</span><div><Coin size={27}/><h3>Получай атомкоины</h3><p>Трать награды на подсказки, усилители и предметы профиля.</p></div></article>
@@ -445,7 +450,6 @@ function LandingScreen({ onLogin, onRegister, telegramUrl, backendError }: {
 
 function SubjectCard({ subject, active, onClick }: { subject: Subject; active?: boolean; onClick: () => void }) {
   return <button className={`subject-card ${active ? 'active' : ''}`} onClick={onClick}>
-    <span className="subject-icon"><Icon name={subject.icon} size={24} /></span>
     <span className="subject-copy"><strong>{subject.name}</strong><small>{subject.description}</small><span className="subject-meta">{subject.lessonsCount} урока · {subject.questionsCount} вопросов</span></span>
   </button>;
 }
@@ -463,7 +467,7 @@ function DashboardScreen({ subjects, user, setView, setSubjectId, requestAuth }:
         <div className="welcome-copy">
           <span className="welcome-kicker">ДУАТОМ · ОБРАЗОВАТЕЛЬНАЯ ПЛАТФОРМА</span>
           <h1>{user ? `${user.firstName}, прокачивай знания вместе с атомной отраслью` : 'Прокачивай знания вместе с атомной отраслью'}</h1>
-          <p>Короткие уроки, задания и AI-помощник по физике, информатике, химии, биологии, математике и истории.</p>
+          <p>Один курс по информатике: Python, алгоритмы, структуры данных, файлы и AI-помощник через OpenRouter.</p>
           <div className="welcome-actions">
             <button className="light-button" onClick={() => setView('topics')}>Продолжить обучение <Icon name="arrow-right" size={17} /></button>
             <button className="outline-light-button" onClick={() => setView('tasks')}>Открыть задания</button>
@@ -481,7 +485,6 @@ function DashboardScreen({ subjects, user, setView, setSubjectId, requestAuth }:
 
       {featured.length > 0 && <section className="learning-snapshot" aria-label="Быстрый доступ к курсам">
         {featured.map((subject, index) => <button key={subject.id} onClick={() => { setSubjectId(subject.id); setView('topics'); }}>
-          <span className={`snapshot-icon snapshot-tone-${index}`}><Icon name={subject.icon} size={20}/></span>
           <span className="snapshot-copy"><small>{index === 0 ? 'Продолжить' : 'В программе'}</small><strong>{subject.name}</strong></span>
           <span className="snapshot-count">{subject.lessonsCount} уроков</span>
           <Icon name="arrow-right" size={16}/>
@@ -491,22 +494,21 @@ function DashboardScreen({ subjects, user, setView, setSubjectId, requestAuth }:
       {user?.program?.sections?.length ? <section className="panel personal-program">
         <div className="section-head"><div><span className="eyebrow">ПЕРСОНАЛЬНАЯ ПРОГРАММА</span><h2>Рекомендуемый маршрут</h2><p>{user.program.levelNote}</p></div><span className="program-level"><Icon name="target" size={17}/>{user.program.level}</span></div>
         <div className="program-list">{user.program.sections.slice(0, 3).map((section, index) => <button key={section.subjectId} onClick={() => { setSubjectId(section.subjectId); setView('topics'); }}>
-          <span className="program-index">{index + 1}</span><span className="program-icon"><Icon name={section.icon} size={20}/></span><span className="program-copy"><strong>{section.name}</strong><small>{section.reason}</small></span><span className="program-base">База {section.scorePct}%</span><Icon name="arrow-right" size={17}/>
+          <span className="program-index">{index + 1}</span><span className="program-copy"><strong>{section.name}</strong><small>{section.reason}</small></span><span className="program-base">База {section.scorePct}%</span><Icon name="arrow-right" size={17}/>
         </button>)}</div>
       </section> : null}
 
       <section className="continue-learning">
-        <div className="section-head"><div><span className="eyebrow">ПРОДОЛЖИТЬ ОБУЧЕНИЕ</span><h2>Курсы для тебя</h2></div><button className="text-link" onClick={() => setView('topics')}>Все темы <Icon name="arrow-right" size={16}/></button></div>
+        <div className="section-head"><div><span className="eyebrow">ПРОДОЛЖИТЬ ОБУЧЕНИЕ</span><h2>Курс информатики</h2></div><button className="text-link" onClick={() => setView('topics')}>Все уроки <Icon name="arrow-right" size={16}/></button></div>
         <div className="continue-grid">
           {subjects.slice(0, 3).map((subject, index) => <article className="course-card" key={subject.id}>
             <button className={`course-cover course-cover-${index}`} onClick={() => { setSubjectId(subject.id); setView('topics'); }} aria-label={`Открыть ${subject.name}`}>
-              <span className="course-cover-label"><Icon name={subject.icon} size={18}/>{subject.name}</span>
-              <span className="course-cover-art"><Icon name={subject.icon} size={64} strokeWidth={1.2}/></span>
+              <span className="course-cover-label">{subject.name}</span>
               <span className="course-cover-chip">{subject.questionsCount} заданий</span>
             </button>
             <div className="course-card-body">
-              <span className="course-category"><Icon name={subject.icon} size={14}/>{subject.name}</span>
-              <h3>{index === 0 ? 'Основы: от теории к практике' : index === 1 ? 'Разбираем ключевые понятия' : 'Практический курс по теме'}</h3>
+              <span className="course-category">{subject.name}</span>
+              <h3>Python и алгоритмы: от основ к практике</h3>
               <p>{subject.description}</p>
               <div className="course-progress-line"><span style={{ width: `${Math.min(86, 28 + index * 19 + Math.round(progress / 5))}%` }}/></div>
               <div className="course-card-footer"><span>{subject.lessonsCount} уроков</span><button onClick={() => { setSubjectId(subject.id); setView('topics'); }}>Открыть <Icon name="arrow-right" size={15}/></button></div>
@@ -516,7 +518,7 @@ function DashboardScreen({ subjects, user, setView, setSubjectId, requestAuth }:
       </section>
 
       <section className="panel dashboard-main subject-catalog">
-        <div className="section-head"><div><span className="eyebrow">НАПРАВЛЕНИЯ</span><h2>Все предметы</h2></div><button className="text-link" onClick={() => setView('topics')}>Смотреть программу <Icon name="arrow-right" size={16} /></button></div>
+        <div className="section-head"><div><span className="eyebrow">ПРОГРАММА</span><h2>Информатика</h2></div><button className="text-link" onClick={() => setView('topics')}>Смотреть уроки <Icon name="arrow-right" size={16} /></button></div>
         <div className="dashboard-subjects">
           {subjects.map((subject) => <SubjectCard key={subject.id} subject={subject} onClick={() => { setSubjectId(subject.id); setView('topics'); }} />)}
         </div>
@@ -573,7 +575,7 @@ function DashboardScreen({ subjects, user, setView, setSubjectId, requestAuth }:
 function TasksScreen({ subjects, initialSubjectId, onSubjectChange, user, setUser, requestAuth }: {
   subjects: Subject[]; initialSubjectId: string; onSubjectChange: (id: string) => void; user: User | null; setUser: (u: User) => void; requestAuth: () => void;
 }) {
-  const [subjectId, setSubjectId] = useState(initialSubjectId || 'physics');
+  const [subjectId, setSubjectId] = useState(initialSubjectId || 'informatics');
   const [questions, setQuestions] = useState<Question[]>([]);
   const [index, setIndex] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
@@ -622,14 +624,14 @@ function TasksScreen({ subjects, initialSubjectId, onSubjectChange, user, setUse
   return <div className="screen-stack">
     <PageTitle eyebrow="ТРЕНИРОВКА" title="Задания" description="Проверь знания и получай атомкоины за правильные ответы." action={user && <div className="title-balance"><Coin /><strong>{user.coins}</strong></div>} />
     <section className="panel subject-picker-panel">
-      <div className="compact-subjects">{subjects.map((subject) => <button key={subject.id} className={subjectId === subject.id ? 'active' : ''} onClick={() => chooseSubject(subject.id)}><Icon name={subject.icon} size={19}/><span>{subject.name}</span></button>)}</div>
+      <div className="compact-subjects">{subjects.map((subject) => <button key={subject.id} className={subjectId === subject.id ? 'active' : ''} onClick={() => chooseSubject(subject.id)}><span>{subject.name}</span></button>)}</div>
     </section>
     {error && <div className="error-banner">{error}</div>}
 
     {!started && <section className="panel task-start-card">
       <div className="task-start-icon"><Icon name="clipboard" size={42} /></div>
-      <h2>Тренировка по предмету</h2>
-      <p>Пять вопросов по темам выбранного направления. После каждого ответа получишь краткий разбор.</p>
+      <h2>Тренировка по информатике</h2>
+      <p>Пять вопросов по урокам курса информатики. После каждого ответа получишь краткий разбор.</p>
       <div className="task-benefits"><span><Icon name="target" size={18}/>5 вопросов</span><span><Icon name="coins" size={18}/>{user?.subscription.isPremium ? '+7' : '+5'} атомкоинов за новый верный ответ</span><span><Icon name="help-circle" size={18}/>Подсказки из магазина</span></div>
       <button className="primary-button" onClick={start} disabled={loading}>{loading ? 'Загрузка' : 'Начать тренировку'}</button>
     </section>}
@@ -666,7 +668,7 @@ function TasksScreen({ subjects, initialSubjectId, onSubjectChange, user, setUse
       <div className="finish-icon"><Icon name="target" size={44}/></div><span className="eyebrow">ТРЕНИРОВКА ЗАВЕРШЕНА</span><h2>{score} из {questions.length}</h2>
       <p>{score >= 4 ? 'Хороший результат. Можно переходить к следующей теме.' : 'Повтори теорию в разделе «Темы» и попробуй ещё раз.'}</p>
       {user && <div className="earned"><Coin size={30}/><span>За тренировку</span><strong>+{earned}</strong></div>}
-      <div className="finish-actions"><button className="primary-button" onClick={start}>Ещё 5 вопросов</button><button className="secondary-button" onClick={() => setStarted(false)}>Выбрать предмет</button></div>
+      <div className="finish-actions"><button className="primary-button" onClick={start}>Ещё 5 вопросов</button><button className="secondary-button" onClick={() => setStarted(false)}>К началу тренировки</button></div>
     </section>}
   </div>;
 }
@@ -701,8 +703,7 @@ function FlashcardLesson({ subject, lesson, user, setUser, onBack, onTasks }: {
     </div>
     {!done ? <div className="flashcard-stage">
       <article className={`flashcard flashcard-${current.type}`}>
-        <div className="flashcard-subject"><span><Icon name={subject.icon} size={21}/></span>{subject.name}</div>
-        <div className="flashcard-visual"><Icon name={current.type === 'recap' ? 'target' : subject.icon} size={76} strokeWidth={1.35}/></div>
+        <div className="flashcard-subject">{subject.name}</div>
         <span className="eyebrow">{current.type === 'intro' ? 'НАЧАЛО УРОКА' : current.type === 'recap' ? 'ЗАКРЕПЛЕНИЕ' : 'ТЕОРИЯ'}</span>
         <h2>{current.title}</h2>
         <p className="flashcard-lead">{current.text}</p>
@@ -728,7 +729,7 @@ function FlashcardLesson({ subject, lesson, user, setUser, onBack, onTasks }: {
           {current.takeaway ? <div className="flashcard-takeaway"><Icon name="check-circle" size={18}/><span><strong>Запомни:</strong> {current.takeaway}</span></div> : null}
         </div>}
         <a className="flashcard-source" href={current.source.url || '#'} target="_blank" rel="noreferrer">
-          <Icon name="book-open" size={16}/><span><small>Источник</small>{current.source.title}</span>
+          <Icon name="book-open" size={16}/><span><small>Единый источник курса</small>{current.source.title}</span>
         </a>
       </article>
       <div className="flashcard-controls">
@@ -763,16 +764,16 @@ function TopicsScreen({ subjects, initialSubjectId, user, setUser, onSubjectChan
     finally { setLoadingLesson(false); }
   };
   if (active) return <FlashcardLesson subject={active.subject} lesson={active.lesson} user={user} setUser={setUser} onBack={() => { setActive(null); loadTopics(); }} onTasks={() => onTasks(active.subject.id)} />;
-  const visible = filter === 'all' ? groups : groups.filter((g) => g.id === filter);
+  const visible = groups;
 
   return <div className="screen-stack">
     <PageTitle eyebrow="БИБЛИОТЕКА" title="Темы и уроки" description="Выбирай тему и проходи теорию по одной карточке за раз." />
-    <section className="panel topics-filter"><button className={filter === 'all' ? 'active' : ''} onClick={() => setFilter('all')}><Icon name="layers" size={18}/>Все предметы</button>{subjects.map((subject) => <button key={subject.id} className={filter === subject.id ? 'active' : ''} onClick={() => { setFilter(subject.id); onSubjectChange(subject.id); }}><Icon name={subject.icon} size={18}/>{subject.name}</button>)}</section>
+    <section className="panel topics-filter single-course-filter"><strong>Информатика</strong><span>{subjects[0]?.lessonsCount ?? 0} уроков · единый источник Python 3 Tutorial</span></section>
     {error && <div className="error-banner">{error}</div>}
     <div className="topics-groups">{visible.map((group) => {
       const completeCount = group.lessons.filter((l) => l.completed).length;
       return <section className="panel topic-group" key={group.id}>
-        <div className="topic-group-head"><div className="topic-group-icon"><Icon name={group.icon} size={28}/></div><div><h2>{group.name}</h2><p>{group.description}</p></div><div className="topic-counter">{completeCount}/{group.lessons.length}</div></div>
+        <div className="topic-group-head"><div><h2>{group.name}</h2><p>{group.description}</p></div><div className="topic-counter">{completeCount}/{group.lessons.length}</div></div>
         <div className="lesson-rows">{group.lessons.map((lesson, index) => <button key={lesson.id} onClick={() => openLesson(group.id, lesson.id)} disabled={loadingLesson}>
           <span className={`lesson-number ${lesson.completed ? 'complete' : ''}`}>{lesson.completed ? <Icon name="check" size={17}/> : index + 1}</span>
           <span className="lesson-row-copy"><strong>{lesson.title}</strong><small>{lesson.summary}</small><span className="lesson-meta">{lesson.difficulty || 'Базовый'}{lesson.durationMinutes ? ` · ${lesson.durationMinutes} мин` : ''}{lesson.tags?.length ? ` · ${lesson.tags.slice(0, 2).join(' · ')}` : ''}</span></span>
@@ -784,7 +785,7 @@ function TopicsScreen({ subjects, initialSubjectId, user, setUser, onSubjectChan
 }
 
 function ChatScreen({ subjects, user, requestAuth }: { subjects: Subject[]; user: User | null; requestAuth: () => void }) {
-  const [subjectId, setSubjectId] = useState('physics');
+  const [subjectId, setSubjectId] = useState('informatics');
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [messages, setMessages] = useState<Array<{ role: 'assistant' | 'user'; text: string }>>([
@@ -803,14 +804,14 @@ function ChatScreen({ subjects, user, requestAuth }: { subjects: Subject[]; user
     <PageTitle eyebrow="УЧЕБНЫЙ ПОМОЩНИК" title="ДуАТОМ AI" description={user?.subscription.isPremium ? 'АТОМ+ · без дневного лимита сообщений' : 'Базовый тариф · до 5 сообщений в день'} />
     <section className="panel chat-layout">
       <aside className="chat-sidebar">
-        <div className="assistant-card"><div className="assistant-logo"><Icon name="atom" size={30}/></div><strong>AI-помощник</strong><p>Выбери предмет, чтобы ответы были точнее.</p></div>
-        <div className="chat-subject-list">{subjects.map((subject) => <button key={subject.id} className={subjectId === subject.id ? 'active' : ''} onClick={() => setSubjectId(subject.id)}><Icon name={subject.icon} size={18}/>{subject.name}</button>)}</div>
+        <div className="assistant-card"><div className="assistant-logo"><Icon name="atom" size={30}/></div><strong>AI-помощник</strong><p>AI работает через OpenRouter и помогает только по курсу информатики.</p></div>
+        <div className="chat-subject-list">{subjects.map((subject) => <button key={subject.id} className={subjectId === subject.id ? 'active' : ''} onClick={() => setSubjectId(subject.id)}>{subject.name}</button>)}</div>
       </aside>
       <div className="chat-main">
         <div className="chat-messages">{messages.map((message, index) => <div key={index} className={`message-row ${message.role}`}><div className="message-bubble">{message.role === 'assistant' && <span className="message-author"><Icon name="atom" size={15}/>ДуАТОМ</span>}{message.text.split('\n').map((line, i) => <p key={i}>{line || ' '}</p>)}</div></div>)}{sending && <div className="message-row assistant"><div className="message-bubble"><span className="message-author"><Icon name="atom" size={15}/>ДуАТОМ</span><p>Формирую ответ...</p></div></div>}</div>
-        <div className="quick-prompts"><button onClick={() => send('Объясни эту тему проще')}>Объясни проще</button><button onClick={() => send('Приведи пример из атомной промышленности')}>Пример из отрасли</button><button onClick={() => send('Дай мне мини-тест по выбранному предмету')}>Мини-тест</button></div>
+        <div className="quick-prompts"><button onClick={() => send('Объясни эту тему проще')}>Объясни проще</button><button onClick={() => send('Приведи пример из атомной промышленности')}>Пример из отрасли</button><button onClick={() => send('Дай мне мини-тест по информатике')}>Мини-тест</button></div>
         <div className="chat-input"><input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && send()} placeholder={user ? 'Задай вопрос...' : 'Войди в аккаунт, чтобы пользоваться AI-чатом'} /><button className="send-button" onClick={() => send()} disabled={!input.trim() || sending}><Icon name="send" size={19}/><span>Отправить</span></button></div>
-        <small className="ai-note">AI может ошибаться. Учебные материалы не заменяют официальные отраслевые регламенты.</small>
+        <small className="ai-note">Ответ генерируется через OpenRouter. AI может ошибаться; проверяй важные сведения по первоисточнику.</small>
       </div>
     </section>
   </div>;
@@ -896,7 +897,7 @@ const navigation: Array<{ id: View; label: string; icon: IconName }> = [
 function App() {
   const [view, setView] = useState<View>('dashboard');
   const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [subjectId, setSubjectId] = useState('physics');
+  const [subjectId, setSubjectId] = useState('informatics');
   const [user, setUser] = useState<User | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);

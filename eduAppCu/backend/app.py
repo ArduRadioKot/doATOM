@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import random
@@ -104,28 +105,22 @@ STORE_ITEMS = [
     ("badge_engineer", "Значок «Атомный инженер»", "atom", "Коллекционный значок для профиля.", 220, "badge", 1),
 ]
 
-SUBJECT_ORDER = ["physics", "informatics", "chemistry", "biology", "math", "history"]
+SUBJECT_ORDER = ["informatics"]
 
 ONBOARDING_INTERESTS = [
-    {"id": "reactor_physics", "title": "Физика реакторов", "description": "Нейтроны, цепная реакция, тепло и управление мощностью.", "icon": "atom", "subjects": ["physics", "math"]},
-    {"id": "energy_engineering", "title": "Энергетика и инженерия", "description": "Как АЭС превращает энергию деления в электричество.", "icon": "zap", "subjects": ["physics", "math"]},
-    {"id": "digital_control", "title": "Цифровые системы", "description": "Датчики, алгоритмы, данные и автоматизация атомных объектов.", "icon": "cpu", "subjects": ["informatics", "math"]},
-    {"id": "nuclear_medicine", "title": "Ядерная медицина", "description": "Радионуклиды, диагностика, терапия и биологические эффекты.", "icon": "dna", "subjects": ["biology", "chemistry"]},
-    {"id": "materials", "title": "Топливо и материалы", "description": "Изотопы, химия топлива, коррозия и свойства материалов.", "icon": "flask", "subjects": ["chemistry", "physics"]},
-    {"id": "safety_ecology", "title": "Безопасность и экология", "description": "Дозиметрия, защита, контроль среды и ответственная эксплуатация.", "icon": "target", "subjects": ["biology", "chemistry"]},
-    {"id": "history_people", "title": "История и люди отрасли", "description": "Ключевые этапы, проекты и развитие мирного атома.", "icon": "landmark", "subjects": ["history"]},
-    {"id": "research_careers", "title": "Наука и профессии", "description": "Исследования, инженерные роли и задачи современных специалистов.", "icon": "microscope", "subjects": ["physics", "informatics", "history"]},
+    {"id": "python_basics", "title": "Python с нуля", "description": "Синтаксис, типы данных, условия и циклы.", "icon": "code", "subjects": ["informatics"]},
+    {"id": "algorithms", "title": "Алгоритмическое мышление", "description": "Декомпозиция, функции и понятная логика программы.", "icon": "layers", "subjects": ["informatics"]},
+    {"id": "data_structures", "title": "Структуры данных", "description": "Списки, словари, множества и обработка коллекций.", "icon": "list", "subjects": ["informatics"]},
+    {"id": "files_data", "title": "Файлы и данные", "description": "Работа с файлами, JSON и преобразованием данных.", "icon": "book-open", "subjects": ["informatics"]},
 ]
 
 ONBOARDING_QUESTIONS = [
-    {"id": "physics_chain", "subjectId": "physics", "question": "Что непосредственно поддерживает цепную реакцию деления в реакторе?", "answers": ["Электроны", "Нейтроны", "Молекулы воды", "Фотоны видимого света"], "correctIndex": 1},
-    {"id": "physics_energy", "subjectId": "physics", "question": "Какая последовательность преобразования энергии наиболее типична для АЭС?", "answers": ["Тепловая → химическая → световая → электрическая", "Механическая → ядерная → химическая → электрическая", "Ядерная → тепловая → механическая → электрическая", "Электрическая → тепловая → ядерная → механическая"], "correctIndex": 2},
-    {"id": "informatics_sensor", "subjectId": "informatics", "question": "Зачем промышленной цифровой системе нужны временные метки у показаний датчиков?", "answers": ["Чтобы понимать, когда было получено каждое измерение", "Чтобы увеличить физическую температуру датчика", "Чтобы заменить резервные каналы связи", "Чтобы изменить единицы измерения"], "correctIndex": 0},
-    {"id": "chemistry_isotope", "subjectId": "chemistry", "question": "Чем изотопы одного химического элемента отличаются друг от друга?", "answers": ["Числом протонов в ядре", "Химическим символом элемента", "Обязательным отсутствием электронов", "Числом нейтронов в ядре"], "correctIndex": 3},
-    {"id": "biology_protection", "subjectId": "biology", "question": "Какое действие обычно уменьшает дозу внешнего облучения от удалённого источника?", "answers": ["Увеличить время рядом с источником", "Увеличить расстояние до источника", "Убрать экранирование", "Подойти ближе к источнику"], "correctIndex": 1},
-    {"id": "math_half_life", "subjectId": "math", "question": "После трёх периодов полураспада какая доля исходного количества ядер останется?", "answers": ["1/3", "3/8", "1/8", "1/6"], "correctIndex": 2},
-    {"id": "math_efficiency", "subjectId": "math", "question": "Тепловая мощность установки 3000 МВт, КПД 33%. Какова примерная электрическая мощность?", "answers": ["990 МВт", "99 МВт", "3000 МВт", "9090 МВт"], "correctIndex": 0},
-    {"id": "history_obninsk", "subjectId": "history", "question": "Какое событие связано с Обнинском и 1954 годом?", "answers": ["Открытие нейтрона", "Создание таблицы Менделеева", "Первый полёт человека в космос", "Пуск первой в мире атомной электростанции"], "correctIndex": 3},
+    {"id": "info_type", "subjectId": "informatics", "question": "Какой тип Python хранит логические значения?", "answers": ["bool", "str", "list", "float"], "correctIndex": 0},
+    {"id": "info_range", "subjectId": "informatics", "question": "Сколько значений выдаёт range(1, 5)?", "answers": ["4", "5", "3", "6"], "correctIndex": 0},
+    {"id": "info_function", "subjectId": "informatics", "question": "Что делает return внутри функции?", "answers": ["Возвращает результат вызова", "Печатает текст", "Создаёт цикл", "Импортирует модуль"], "correctIndex": 0},
+    {"id": "info_dict", "subjectId": "informatics", "question": "Какая структура хранит пары ключ–значение?", "answers": ["dict", "set", "tuple", "range"], "correctIndex": 0},
+    {"id": "info_file", "subjectId": "informatics", "question": "Зачем удобно использовать with open(...)?", "answers": ["Файл корректно закрывается после блока", "Файл становится архивом", "Отключаются исключения", "Файл всегда читается целиком"], "correctIndex": 0},
+    {"id": "info_exception", "subjectId": "informatics", "question": "Какое исключение ожидаемо при int('abc')?", "answers": ["ValueError", "KeyError", "ImportError", "ZeroDivisionError"], "correctIndex": 0},
 ]
 
 
@@ -198,6 +193,12 @@ def init_db() -> None:
                 assessment_json TEXT NOT NULL DEFAULT '{}',
                 program_json TEXT NOT NULL DEFAULT '{}',
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS registered_devices (
+                device_hash TEXT PRIMARY KEY,
+                user_id INTEGER NOT NULL UNIQUE,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
             );
             CREATE TABLE IF NOT EXISTS answer_attempts (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -367,6 +368,35 @@ def init_db() -> None:
                         """INSERT INTO questions(subject_id, content_key, topic, question, answers_json, correct_index, explanation,
                            difficulty, origin, source_title, source_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", values,
                     )
+        # Remove content that is no longer present in the canonical JSON catalog.
+        # The current product intentionally exposes exactly one course: Informatics.
+        active_subject_ids = [course["subject"]["id"] for course in COURSE_CATALOG]
+        active_lesson_keys = [lesson["key"] for course in COURSE_CATALOG for lesson in course["lessons"]]
+        active_question_keys = [item["key"] for items in QUESTION_CATALOG.values() for item in items]
+        subject_marks = ",".join("?" for _ in active_subject_ids)
+        lesson_marks = ",".join("?" for _ in active_lesson_keys)
+        question_marks = ",".join("?" for _ in active_question_keys)
+        conn.execute(f"DELETE FROM lessons WHERE subject_id NOT IN ({subject_marks})", active_subject_ids)
+        conn.execute(f"DELETE FROM questions WHERE subject_id NOT IN ({subject_marks})", active_subject_ids)
+        conn.execute(f"DELETE FROM lessons WHERE content_key IS NOT NULL AND content_key NOT IN ({lesson_marks})", active_lesson_keys)
+        conn.execute(f"DELETE FROM questions WHERE content_key IS NOT NULL AND content_key NOT IN ({question_marks})", active_question_keys)
+        conn.execute(f"DELETE FROM subjects WHERE id NOT IN ({subject_marks})", active_subject_ids)
+
+        # Existing personalized programs may still reference removed subjects. Force a short
+        # re-onboarding only when stale subject ids are detected; course progress itself is kept.
+        active_subject_set = set(active_subject_ids)
+        for row in conn.execute("SELECT id, program_json FROM users WHERE program_json IS NOT NULL AND program_json <> '{}' ").fetchall():
+            try:
+                program = json.loads(row["program_json"] or "{}")
+                section_ids = {str(item.get("subjectId")) for item in program.get("sections", []) if item.get("subjectId")}
+            except (ValueError, TypeError, AttributeError):
+                section_ids = {"invalid"}
+            if section_ids - active_subject_set:
+                conn.execute(
+                    "UPDATE users SET onboarding_required=1, interests_json='[]', assessment_json='{}', program_json='{}' WHERE id=?",
+                    (row["id"],),
+                )
+
         conn.executemany(
             """INSERT INTO store_items(id, title, icon, description, price, kind, value)
                VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -618,7 +648,7 @@ def local_ai_answer(message: str, subject_id: str | None) -> str:
     ranked = sorted(rows, key=score, reverse=True)
     best = ranked[0] if ranked else None
     if not best:
-        return "Я могу помочь с физикой, информатикой, химией, биологией, математикой и историей атомной промышленности. Задай вопрос по одной из этих тем."
+        return "Я могу помочь по курсу информатики: Python, алгоритмы, структуры данных, файлы и обработка ошибок."
     body = best["body"].replace("\n\n", " ")
     if len(body) > 900:
         body = body[:897] + "…"
@@ -629,44 +659,82 @@ def local_ai_answer(message: str, subject_id: str | None) -> str:
     return f"Нашёл близкую тему: **{best['subject_name']} · {best['title']}**.\n\n{body}\n\nМогу объяснить это проще или предложить мини-тест."
 
 
-def external_ai_answer(message: str, subject_id: str | None) -> str | None:
-    api_key = os.getenv("OPENAI_API_KEY", "").strip()
+def external_ai_answer(message: str, subject_id: str | None) -> tuple[str | None, str | None]:
+    """Call OpenRouter. The API key stays only on the backend."""
+    api_key = os.getenv("OPENROUTER_API_KEY", "").strip()
     if not api_key:
-        return None
-    model = os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
+        return None, "OPENROUTER_API_KEY не настроен на сервере"
+
+    model = os.getenv("OPENROUTER_MODEL", "openai/gpt-4.1-mini").strip() or "openai/gpt-4.1-mini"
     system_text = (
-        "Ты учебный помощник ДуАТОМ. Отвечай по-русски, кратко и понятно школьнику. "
-        "Все примеры связывай с мирными применениями атомной промышленности. "
-        "Не давай опасных инструкций по созданию оружия, обращению с радиоактивными материалами или обходу промышленной безопасности. "
-        f"Текущий предмет: {subject_id or 'не выбран'}."
+        "Ты учебный помощник ДуАТОМ по информатике. Отвечай по-русски, кратко и понятно школьнику. "
+        "Опирайся на базовые концепции Python: алгоритмы, функции, коллекции, файлы, JSON, исключения и модули. "
+        "Если приводишь отраслевой пример, используй только мирные и безопасные сценарии цифровизации атомной отрасли. "
+        "Не придумывай факты и явно отмечай неопределённость. "
+        f"Текущий курс: {subject_id or 'informatics'}."
     )
     payload = json.dumps({
         "model": model,
-        "input": [
+        "messages": [
             {"role": "system", "content": system_text},
             {"role": "user", "content": message},
         ],
-        "max_output_tokens": 700,
+        "max_tokens": 700,
+        "temperature": 0.35,
     }).encode("utf-8")
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+        "X-Title": os.getenv("OPENROUTER_APP_NAME", "DuATOM"),
+    }
+    referer = os.getenv("OPENROUTER_SITE_URL", "").strip()
+    if referer:
+        headers["HTTP-Referer"] = referer
     req = urllib.request.Request(
-        "https://api.openai.com/v1/responses",
+        "https://openrouter.ai/api/v1/chat/completions",
         data=payload,
-        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+        headers=headers,
         method="POST",
     )
     try:
-        with urllib.request.urlopen(req, timeout=20) as response:
+        with urllib.request.urlopen(req, timeout=30) as response:
             data = json.loads(response.read().decode("utf-8"))
-        text = data.get("output_text")
-        if text:
-            return str(text).strip()
-        for block in data.get("output", []):
-            for content in block.get("content", []):
-                if content.get("type") == "output_text" and content.get("text"):
-                    return str(content["text"]).strip()
-    except (urllib.error.URLError, TimeoutError, ValueError, KeyError):
+        choices = data.get("choices") or []
+        if choices:
+            content = (choices[0].get("message") or {}).get("content")
+            if isinstance(content, str) and content.strip():
+                return content.strip(), None
+            if isinstance(content, list):
+                parts = [str(item.get("text", "")).strip() for item in content if isinstance(item, dict) and item.get("text")]
+                text = "\n".join(part for part in parts if part).strip()
+                if text:
+                    return text, None
+        return None, "OpenRouter вернул пустой ответ"
+    except urllib.error.HTTPError as exc:
+        try:
+            details = json.loads(exc.read().decode("utf-8"))
+            provider_message = ((details.get("error") or {}).get("message") or "").strip()
+        except Exception:
+            provider_message = ""
+        message_text = provider_message or f"HTTP {exc.code}"
+        return None, f"Ошибка OpenRouter: {message_text}"
+    except (urllib.error.URLError, TimeoutError, ValueError, KeyError) as exc:
+        return None, f"OpenRouter недоступен: {exc}"
+
+
+def normalized_device_id() -> str | None:
+    # HttpOnly cookie survives normal localStorage cleanup; the header supports first registration.
+    value = (request.cookies.get("duatom_device") or request.headers.get("X-Device-ID") or "").strip()
+    if not (20 <= len(value) <= 128):
         return None
-    return None
+    if not all(ch.isalnum() or ch in "-_" for ch in value):
+        return None
+    return value
+
+
+def device_hash(device_id: str) -> str:
+    pepper = os.getenv("DEVICE_ID_PEPPER", app.secret_key)
+    return hashlib.sha256(f"{pepper}:{device_id}".encode("utf-8")).hexdigest()
 
 
 @app.get("/api/health")
@@ -679,6 +747,8 @@ def config():
     return jsonify({
         "telegramBotUrl": os.getenv("TELEGRAM_BOT_URL", "https://t.me/yasno_sub_bot"),
         "coinReward": 5,
+        "aiProvider": "openrouter",
+        "aiConfigured": bool(os.getenv("OPENROUTER_API_KEY", "").strip()),
     })
 
 
@@ -689,24 +759,53 @@ def register():
     password = str(body.get("password", ""))
     first_name = str(body.get("firstName", "")).strip()
     last_name = str(body.get("lastName", "")).strip()
+    raw_device_id = normalized_device_id()
+    if not raw_device_id:
+        return jsonify({"error": "Не удалось определить это устройство. Обновите страницу и попробуйте снова."}), 400
     if not first_name or not email or "@" not in email:
         return jsonify({"error": "Укажите имя и корректную почту"}), 400
     if len(password) < 8:
         return jsonify({"error": "Пароль должен содержать не менее 8 символов"}), 400
+
+    hashed_device = device_hash(raw_device_id)
     try:
         with connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            registered = conn.execute(
+                "SELECT user_id FROM registered_devices WHERE device_hash=?",
+                (hashed_device,),
+            ).fetchone()
+            if registered:
+                return jsonify({
+                    "error": "На этом устройстве уже был зарегистрирован аккаунт. Войдите в существующий аккаунт."
+                }), 409
             cur = conn.execute(
                 "INSERT INTO users(email, password_hash, first_name, last_name, onboarding_required) VALUES (?, ?, ?, ?, 1)",
                 (email, generate_password_hash(password), first_name, last_name),
             )
             user_id = int(cur.lastrowid)
+            conn.execute(
+                "INSERT INTO registered_devices(device_hash, user_id) VALUES (?, ?)",
+                (hashed_device, user_id),
+            )
             conn.execute("INSERT OR IGNORE INTO subscriptions(user_id, plan) VALUES (?, 'free')", (user_id,))
             payload = profile_payload(conn, user_id)
     except sqlite3.IntegrityError:
         return jsonify({"error": "Аккаунт с такой почтой уже существует"}), 409
+
     session.clear()
     session["user_id"] = user_id
-    return jsonify(payload), 201
+    response = jsonify(payload)
+    response.status_code = 201
+    response.set_cookie(
+        "duatom_device",
+        raw_device_id,
+        max_age=60 * 60 * 24 * 365 * 2,
+        httponly=True,
+        samesite="Lax",
+        secure=app.config["SESSION_COOKIE_SECURE"],
+    )
+    return response
 
 
 @app.post("/api/auth/login")
@@ -833,9 +932,7 @@ def list_subjects():
                LEFT JOIN lessons l ON l.subject_id = s.id
                LEFT JOIN questions q ON q.subject_id = s.id
                GROUP BY s.id
-               ORDER BY CASE s.id
-                 WHEN 'physics' THEN 1 WHEN 'informatics' THEN 2 WHEN 'chemistry' THEN 3
-                 WHEN 'biology' THEN 4 WHEN 'math' THEN 5 WHEN 'history' THEN 6 ELSE 99 END"""
+               ORDER BY CASE s.id WHEN 'informatics' THEN 1 ELSE 99 END"""
         ).fetchall()
     return jsonify([
         {**subject_row_to_dict(row), "lessonsCount": row["lessons_count"], "questionsCount": row["questions_count"]}
@@ -875,9 +972,7 @@ def topics():
     user_id = current_user_id()
     with connect() as conn:
         subjects = conn.execute(
-            """SELECT * FROM subjects ORDER BY CASE id
-               WHEN 'physics' THEN 1 WHEN 'informatics' THEN 2 WHEN 'chemistry' THEN 3
-               WHEN 'biology' THEN 4 WHEN 'math' THEN 5 WHEN 'history' THEN 6 ELSE 99 END"""
+            """SELECT * FROM subjects ORDER BY CASE id WHEN 'informatics' THEN 1 ELSE 99 END"""
         ).fetchall()
         completed = set()
         if user_id:
@@ -1184,14 +1279,19 @@ def chat():
         count = int(usage["messages"]) if usage else 0
         if not premium and count >= 5:
             return jsonify({"error": "Лимит Базового тарифа — 5 сообщений в день. АТОМ+ снимает лимит."}), 429
+
+    answer, provider_error = external_ai_answer(message, subject_id)
+    if not answer:
+        status = 503 if provider_error and "OPENROUTER_API_KEY" in provider_error else 502
+        return jsonify({"error": provider_error or "OpenRouter не вернул ответ"}), status
+
+    with connect() as conn:
         conn.execute(
             """INSERT INTO chat_usage(user_id, usage_date, messages) VALUES (?, ?, 1)
                ON CONFLICT(user_id, usage_date) DO UPDATE SET messages=messages+1""",
             (user_id, today),
         )
-    external = external_ai_answer(message, subject_id)
-    answer = external or local_ai_answer(message, subject_id)
-    return jsonify({"content": answer, "source": "external" if external else "local"})
+    return jsonify({"content": answer, "source": "openrouter"})
 
 
 # Telegram-бот работает в том же процессе, что и Flask backend, и использует ту же SQLite-базу.

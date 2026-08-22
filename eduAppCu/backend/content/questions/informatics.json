@@ -3,230 +3,306 @@
   "questions": [
     {
       "key": "in-q01",
-      "topic": "Python",
-      "question": "Какой тип данных Python удобен для хранения пар «имя параметра → значение»?",
+      "topic": "Основы",
+      "question": "Что делает оператор = в Python?",
       "answers": [
-        "dict",
-        "float",
-        "bool",
-        "None"
+        "Связывает имя со значением",
+        "Сравнивает два значения",
+        "Печатает результат",
+        "Завершает программу"
       ],
       "correctIndex": 0,
-      "explanation": "Словарь хранит пары ключ-значение.",
+      "explanation": "Оператор присваивания связывает имя с результатом выражения.",
       "difficulty": "Базовый",
       "origin": "original",
       "source": {
-        "title": "Class Central — Introduction to Data Science in Python",
-        "url": "https://www.classcentral.com/course/python-data-analysis-6671"
+        "title": "Python 3 Tutorial — Python Software Foundation",
+        "url": "https://docs.python.org/3/tutorial/"
       }
     },
     {
       "key": "in-q02",
-      "topic": "Pandas",
-      "question": "Что обычно нужно проверить сразу после загрузки таблицы?",
+      "topic": "Типы",
+      "question": "Какой тип обычно используют для логических значений?",
       "answers": [
-        "Типы столбцов и пропуски",
-        "Только цвет интерфейса",
-        "Только имя файла",
-        "Частоту процессора"
+        "bool",
+        "str",
+        "list",
+        "float"
       ],
       "correctIndex": 0,
-      "explanation": "Типы и пропуски напрямую влияют на корректность анализа.",
+      "explanation": "Тип bool имеет значения True и False.",
       "difficulty": "Базовый",
       "origin": "original",
       "source": {
-        "title": "Class Central — Introduction to Data Science in Python",
-        "url": "https://www.classcentral.com/course/python-data-analysis-6671"
+        "title": "Python 3 Tutorial — Python Software Foundation",
+        "url": "https://docs.python.org/3/tutorial/"
       }
     },
     {
       "key": "in-q03",
-      "topic": "Логика",
-      "question": "Выражение A AND B истинно, когда...",
+      "topic": "Условия",
+      "question": "Какая ветка выполнится первой при конструкции if / elif / else?",
       "answers": [
-        "A и B оба истинны",
-        "Хотя бы одно истинно",
-        "Оба ложны",
-        "A и B различны"
+        "Первая ветка с истинным условием",
+        "Всегда else",
+        "Все истинные ветки",
+        "Случайная ветка"
       ],
       "correctIndex": 0,
-      "explanation": "Логическое И требует истинности обоих операндов.",
+      "explanation": "Проверки идут сверху вниз и выполнение переходит в первую подходящую ветку.",
       "difficulty": "Базовый",
-      "origin": "fipi-inspired",
+      "origin": "original",
       "source": {
-        "title": "ФИПИ — открытый банк заданий ОГЭ",
-        "url": "https://fipi.ru/oge/otkrytyy-bank-zadaniy-oge"
+        "title": "Python 3 Tutorial — Python Software Foundation",
+        "url": "https://docs.python.org/3/tutorial/"
       }
     },
     {
       "key": "in-q04",
-      "topic": "Алгоритмы",
-      "question": "В цикле счётчик увеличивается от 1 до 5 включительно. Сколько раз выполнится тело цикла?",
+      "topic": "Циклы",
+      "question": "Сколько значений выдаёт range(2, 7)?",
       "answers": [
         "5",
         "4",
         "6",
-        "1"
+        "7"
       ],
       "correctIndex": 0,
-      "explanation": "Значения 1,2,3,4,5 дают пять итераций.",
+      "explanation": "Получаются 2, 3, 4, 5, 6 — правая граница не включается.",
       "difficulty": "Базовый",
-      "origin": "fipi-inspired",
+      "origin": "original",
       "source": {
-        "title": "ФИПИ — открытый банк заданий ОГЭ",
-        "url": "https://fipi.ru/oge/otkrytyy-bank-zadaniy-oge"
+        "title": "Python 3 Tutorial — Python Software Foundation",
+        "url": "https://docs.python.org/3/tutorial/"
       }
     },
     {
       "key": "in-q05",
-      "topic": "Данные",
-      "question": "Файл содержит 2048 байт. Сколько это килобайт при 1 Кбайт = 1024 байта?",
+      "topic": "Функции",
+      "question": "Что происходит, если функция завершается без явного return?",
       "answers": [
-        "2 Кбайт",
-        "1 Кбайт",
-        "2048 Кбайт",
-        "0,5 Кбайт"
+        "Она возвращает None",
+        "Она возвращает 0",
+        "Она перезапускается",
+        "Возникает SyntaxError"
       ],
       "correctIndex": 0,
-      "explanation": "2048/1024 = 2.",
+      "explanation": "При отсутствии return функция возвращает None.",
       "difficulty": "Базовый",
-      "origin": "fipi-inspired",
+      "origin": "original",
       "source": {
-        "title": "ФИПИ — открытый банк заданий ОГЭ",
-        "url": "https://fipi.ru/oge/otkrytyy-bank-zadaniy-oge"
+        "title": "Python 3 Tutorial — Python Software Foundation",
+        "url": "https://docs.python.org/3/tutorial/"
       }
     },
     {
       "key": "in-q06",
-      "topic": "SQL",
-      "question": "Какое слово SQL обычно используется для фильтрации строк по условию?",
+      "topic": "Коллекции",
+      "question": "Какая структура лучше подходит для пар ключ–значение?",
       "answers": [
-        "WHERE",
-        "JOIN",
-        "ORDER",
-        "CREATE"
+        "dict",
+        "set",
+        "tuple",
+        "range"
       ],
       "correctIndex": 0,
-      "explanation": "WHERE задаёт условие отбора строк.",
-      "difficulty": "Средний",
-      "origin": "fipi-inspired",
+      "explanation": "Словарь dict хранит значения по уникальным ключам.",
+      "difficulty": "Базовый",
+      "origin": "original",
       "source": {
-        "title": "ФИПИ — открытый банк заданий ЕГЭ",
-        "url": "https://fipi.ru/ege/otkrytyy-bank-zadaniy-ege"
+        "title": "Python 3 Tutorial — Python Software Foundation",
+        "url": "https://docs.python.org/3/tutorial/"
       }
     },
     {
       "key": "in-q07",
-      "topic": "ML",
-      "question": "Зачем отделять тестовую выборку от обучающей?",
+      "topic": "Коллекции",
+      "question": "Какое свойство характерно для set?",
       "answers": [
-        "Чтобы оценить качество на невидимых модели данных",
-        "Чтобы увеличить число строк",
-        "Чтобы заменить очистку данных",
-        "Чтобы гарантировать 100% точность"
+        "Хранит уникальные элементы",
+        "Всегда хранит элементы с индексами",
+        "Допускает только числа",
+        "Содержит пары ключ–значение"
       ],
       "correctIndex": 0,
-      "explanation": "Тестовые данные дают независимую оценку обобщения.",
+      "explanation": "Множество set предназначено для уникальных хешируемых элементов.",
       "difficulty": "Базовый",
       "origin": "original",
       "source": {
-        "title": "Class Central — Machine Learning courses",
-        "url": "https://www.classcentral.com/subject/machine-learning"
+        "title": "Python 3 Tutorial — Python Software Foundation",
+        "url": "https://docs.python.org/3/tutorial/"
       }
     },
     {
       "key": "in-q08",
-      "topic": "Статистика",
-      "question": "Что обычно устойчивее к единичному очень большому выбросу?",
+      "topic": "Срезы",
+      "question": "Что вернёт [10, 20, 30, 40][1:3]?",
       "answers": [
-        "Медиана",
-        "Среднее",
-        "Сумма",
-        "Максимум"
+        "[20, 30]",
+        "[10, 20, 30]",
+        "[20, 30, 40]",
+        "[30, 40]"
       ],
       "correctIndex": 0,
-      "explanation": "Медиана определяется порядком значений и мало меняется от одного экстремального выброса.",
+      "explanation": "Срез включает индекс 1 и не включает правую границу 3.",
       "difficulty": "Базовый",
       "origin": "original",
       "source": {
-        "title": "Class Central — Statistics for Data Science with Python",
-        "url": "https://www.classcentral.com/course/statistics-for-data-science-python-22313"
+        "title": "Python 3 Tutorial — Python Software Foundation",
+        "url": "https://docs.python.org/3/tutorial/"
       }
     },
     {
       "key": "in-q09",
-      "topic": "NumPy",
-      "question": "Что означает shape массива?",
+      "topic": "Comprehension",
+      "question": "Для чего часто используют условие if в list comprehension?",
       "answers": [
-        "Размеры по его осям",
-        "Цвет графика",
-        "Версию Python",
-        "Имя переменной"
+        "Для фильтрации элементов",
+        "Для импорта модуля",
+        "Для открытия файла",
+        "Для объявления класса"
       ],
       "correctIndex": 0,
-      "explanation": "Shape описывает длину массива вдоль каждой оси.",
-      "difficulty": "Базовый",
+      "explanation": "Условие в comprehension оставляет только элементы, которые ему удовлетворяют.",
+      "difficulty": "Средний",
       "origin": "original",
       "source": {
-        "title": "Википедия — NumPy",
-        "url": "https://ru.wikipedia.org/wiki/NumPy"
+        "title": "Python 3 Tutorial — Python Software Foundation",
+        "url": "https://docs.python.org/3/tutorial/"
       }
     },
     {
       "key": "in-q10",
-      "topic": "Pipeline",
-      "question": "Какое свойство пайплайна важнее всего для повторного анализа?",
+      "topic": "Файлы",
+      "question": "Какое преимущество даёт конструкция with open(...)?",
       "answers": [
-        "Воспроизводимость шагов",
-        "Ручное редактирование каждого файла",
-        "Случайное изменение параметров",
-        "Отсутствие журналов"
+        "Файл автоматически закрывается после блока",
+        "Файл становится бинарным",
+        "Запрещаются исключения",
+        "Файл всегда читается целиком"
       ],
       "correctIndex": 0,
-      "explanation": "Фиксированные шаги позволяют повторить анализ на новых данных.",
-      "difficulty": "Базовый",
+      "explanation": "Контекстный менеджер корректно освобождает ресурс при выходе из блока.",
+      "difficulty": "Средний",
       "origin": "original",
       "source": {
-        "title": "Ship That Code — Data Scientist path",
-        "url": "https://shipthatcode.com/paths/data-scientist"
+        "title": "Python 3 Tutorial — Python Software Foundation",
+        "url": "https://docs.python.org/3/tutorial/"
       }
     },
     {
       "key": "in-q11",
-      "topic": "Регрессия",
-      "question": "Какая задача является регрессией?",
+      "topic": "JSON",
+      "question": "Чем json.dumps отличается от json.dump?",
       "answers": [
-        "Прогноз температуры в градусах",
-        "Определение класса «норма/авария»",
-        "Сортировка файлов по имени",
-        "Проверка пароля"
+        "dumps возвращает строку, dump пишет в файловый объект",
+        "dumps читает файл, dump удаляет файл",
+        "Разницы нет",
+        "dump работает только с числами"
       ],
       "correctIndex": 0,
-      "explanation": "Регрессия предсказывает числовую величину.",
-      "difficulty": "Базовый",
+      "explanation": "Функции с суффиксом s работают со строковым представлением.",
+      "difficulty": "Средний",
       "origin": "original",
       "source": {
-        "title": "Class Central — Machine Learning courses",
-        "url": "https://www.classcentral.com/subject/machine-learning"
+        "title": "Python 3 Tutorial — Python Software Foundation",
+        "url": "https://docs.python.org/3/tutorial/"
       }
     },
     {
       "key": "in-q12",
-      "topic": "Git",
-      "question": "Зачем аналитику система контроля версий?",
+      "topic": "Ошибки",
+      "question": "Какое исключение ожидаемо при int('abc')?",
       "answers": [
-        "Хранить историю изменений кода и возвращаться к версиям",
-        "Увеличивать размер CSV",
-        "Заменять базу данных",
-        "Измерять температуру"
+        "ValueError",
+        "KeyError",
+        "ImportError",
+        "ZeroDivisionError"
       ],
       "correctIndex": 0,
-      "explanation": "Git фиксирует изменения и помогает воспроизводить состояние проекта.",
+      "explanation": "Строка 'abc' не представляет целое число, поэтому int вызывает ValueError.",
+      "difficulty": "Средний",
+      "origin": "original",
+      "source": {
+        "title": "Python 3 Tutorial — Python Software Foundation",
+        "url": "https://docs.python.org/3/tutorial/"
+      }
+    },
+    {
+      "key": "in-q13",
+      "topic": "Ошибки",
+      "question": "Почему лучше перехватывать конкретный тип исключения?",
+      "answers": [
+        "Чтобы не скрывать неожиданные ошибки",
+        "Чтобы код всегда выполнялся быстрее",
+        "Чтобы не использовать return",
+        "Чтобы не закрывать файлы"
+      ],
+      "correctIndex": 0,
+      "explanation": "Точный обработчик сохраняет видимость ошибок, которые программа не умеет корректно обрабатывать.",
+      "difficulty": "Средний",
+      "origin": "original",
+      "source": {
+        "title": "Python 3 Tutorial — Python Software Foundation",
+        "url": "https://docs.python.org/3/tutorial/"
+      }
+    },
+    {
+      "key": "in-q14",
+      "topic": "Модули",
+      "question": "Какой вариант лучше показывает происхождение функции?",
+      "answers": [
+        "module.function()",
+        "function() после import *",
+        "eval('function()')",
+        "globals()['function']()"
+      ],
+      "correctIndex": 0,
+      "explanation": "Имя модуля делает зависимость и происхождение функции явными.",
+      "difficulty": "Средний",
+      "origin": "original",
+      "source": {
+        "title": "Python 3 Tutorial — Python Software Foundation",
+        "url": "https://docs.python.org/3/tutorial/"
+      }
+    },
+    {
+      "key": "in-q15",
+      "topic": "Алгоритмы",
+      "question": "Когда цикл while особенно уместен?",
+      "answers": [
+        "Когда повторение зависит от условия, а число итераций заранее неизвестно",
+        "Только для списков фиксированной длины",
+        "Только для строк",
+        "Только внутри функции"
+      ],
+      "correctIndex": 0,
+      "explanation": "while повторяется до изменения логического условия.",
       "difficulty": "Базовый",
       "origin": "original",
       "source": {
-        "title": "Википедия — Git",
-        "url": "https://ru.wikipedia.org/wiki/Git"
+        "title": "Python 3 Tutorial — Python Software Foundation",
+        "url": "https://docs.python.org/3/tutorial/"
+      }
+    },
+    {
+      "key": "in-q16",
+      "topic": "Функции",
+      "question": "Что делает return внутри функции?",
+      "answers": [
+        "Завершает вызов и возвращает значение",
+        "Печатает значение автоматически",
+        "Импортирует модуль",
+        "Создаёт цикл"
+      ],
+      "correctIndex": 0,
+      "explanation": "return передаёт результат вызывающему коду и завершает текущий вызов функции.",
+      "difficulty": "Базовый",
+      "origin": "original",
+      "source": {
+        "title": "Python 3 Tutorial — Python Software Foundation",
+        "url": "https://docs.python.org/3/tutorial/"
       }
     }
   ]
