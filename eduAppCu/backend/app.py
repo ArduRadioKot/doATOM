@@ -1222,27 +1222,43 @@ def start_telegram_bot() -> bool:
     @bot.message_handler(commands=["start"])
     def bot_start(message):
         markup = types.InlineKeyboardMarkup()
-        markup.add(types.InlineKeyboardButton("Открыть ДуАТОМ", url=app_url))
+        markup.add(
+            types.InlineKeyboardButton(
+                text="💳 Оплатить подписку",
+                callback_data="pay",
+            )
+        )
+        # Only add URL button if it's a valid HTTPS URL
+        if app_url.startswith("https://"):
+            markup.add(types.InlineKeyboardButton("Открыть ДуАТОМ", url=app_url))
+
         bot.send_message(
             message.chat.id,
-            "<b>ДуАТОМ</b> — учебная платформа про атомную промышленность.\n\n"
-            "В приложении можно изучать физику, информатику, химию, биологию, математику и историю отрасли, "
-            "получать атомкоины за правильные ответы и тратить их во внутреннем магазине.\n\n"
-            "Подписка АТОМ+ активируется ключом в профиле.",
-            parse_mode="HTML",
+            "👋 Привет! Я бот для активации премиум подписки в сервисе doATOM!\n\n"
+            "Этот сервис предназначен для подготовки к экзаменам с персональным ИИ-ментором.\n\n"
+            "Нажмите кнопку ниже для оплаты подписки или используйте команду /help для справки.",
             reply_markup=markup,
         )
 
     @bot.message_handler(commands=["help"])
     def bot_help(message):
-        text = (
-            "/start — открыть ДуАТОМ\n"
-            "/about — что умеет приложение\n"
-            "/shop — как работают атомкоины\n"
-        )
+        help_text = """
+/start - Начало работы
+/help - Справка по командам
+/generate - Сгенерировать ключ (только для администратора)
+/keys - Показать список ключей (только для администратора)
+/pay - Оплатить подписку
+/about - что умеет приложение
+/shop - как работают атомкоины
+"""
+
         if is_admin(message.from_user.id):
-            text += "/generate [дни] — создать ключ АТОМ+\n/keys — последние ключи\n"
-        bot.send_message(message.chat.id, text)
+            bot.send_message(message.chat.id, help_text)
+        else:
+            bot.send_message(
+                message.chat.id,
+                "/start - Начало работы\n/help - Справка по командам\n/pay - Оплатить подписку\n/about - что умеет приложение\n/shop - как работают атомкоины",
+            )
 
     @bot.message_handler(commands=["about"])
     def bot_about(message):
@@ -1263,37 +1279,125 @@ def start_telegram_bot() -> bool:
     @bot.message_handler(commands=["generate"])
     def bot_generate(message):
         if not is_admin(message.from_user.id):
-            bot.send_message(message.chat.id, "Эта команда доступна только администраторам.")
+            bot.send_message(message.chat.id, "❌ Эта команда доступна только администраторам")
             return
         parts = message.text.split()
         days = 30
         if len(parts) > 1 and parts[1].isdigit():
             days = max(1, min(int(parts[1]), 365))
-        with connect() as conn:
-            key = make_premium_key(conn, days)
-        bot.send_message(
-            message.chat.id,
-            f"Ключ АТОМ+ на {days} дн.:\n<code>{key}</code>\n\nЕго можно активировать один раз в профиле ДуАТОМ.",
-            parse_mode="HTML",
-        )
+        try:
+            with connect() as conn:
+                key = make_premium_key(conn, days)
+            bot.send_message(
+                message.chat.id,
+                "✅ Ключ премиум подписки создан!\n\n"
+                f"🔑 Ключ: `{key}`\n\n"
+                f"Срок: {days} дней после активации в приложении\n\n"
+                "Пользователь может активировать этот ключ в профиле.",
+                parse_mode="Markdown",
+            )
+        except Exception as error:
+            bot.send_message(
+                message.chat.id,
+                f"❌ Ошибка при создании ключа: {error}",
+            )
 
     @bot.message_handler(commands=["keys"])
     def bot_keys(message):
         if not is_admin(message.from_user.id):
-            bot.send_message(message.chat.id, "Эта команда доступна только администраторам.")
+            bot.send_message(message.chat.id, "❌ Эта команда доступна только администраторам")
             return
-        with connect() as conn:
-            rows = conn.execute(
-                "SELECT key, duration_days, used_by, created_at FROM premium_keys ORDER BY id DESC LIMIT 10"
-            ).fetchall()
-        if not rows:
-            bot.send_message(message.chat.id, "Ключей пока нет.")
-            return
-        lines = ["Последние ключи:"]
-        for row in rows:
-            state = "использован" if row["used_by"] else "свободен"
-            lines.append(f"<code>{row['key']}</code> · {row['duration_days']} дн. · {state}")
-        bot.send_message(message.chat.id, "\n".join(lines), parse_mode="HTML")
+        try:
+            with connect() as conn:
+                rows = conn.execute(
+                    "SELECT key, duration_days, used_by, created_at FROM premium_keys ORDER BY id DESC LIMIT 10"
+                ).fetchall()
+            if not rows:
+                bot.send_message(message.chat.id, "📭 Нет созданных ключей")
+                return
+
+            response = "📋 Последние 10 ключей:\n\n"
+            for row in rows:
+                status = "✅ Активен" if True else "❌ Деактивирован"
+                used = "✔️ Использован" if row["used_by"] else "⏳ Доступен"
+                expires = "после активации"
+
+                response += (
+                    f"🔑 {row['key']}\n"
+                    f"   Статус: {status}\n"
+                    f"   Используется: {used}\n"
+                    f"   Истекает: {expires}\n"
+                    f"   Создан: {row['created_at']}\n\n"
+                )
+
+            bot.send_message(message.chat.id, response)
+        except Exception as error:
+            bot.send_message(
+                message.chat.id,
+                f"❌ Ошибка при получении ключей: {error}",
+            )
+
+    @bot.callback_query_handler(func=lambda call: call.data == "pay")
+    def handle_payment(call):
+        try:
+            prices = [types.LabeledPrice(label="Премиум подписка", amount=1)]
+
+            bot.send_invoice(
+                call.from_user.id,
+                title="Премиум подписка doATOM",
+                description="Доступ к ИИ-ментору для подготовки к экзаменам на 30 дней",
+                invoice_payload="premium_subscription",
+                provider_token="",
+                currency="XTR",
+                prices=prices,
+                is_flexible=False,
+            )
+        except Exception as error:
+            bot.send_message(
+                call.from_user.id,
+                f"❌ Ошибка при инициации платежа: {error}",
+            )
+
+    @bot.pre_checkout_query_handler(func=lambda query: True)
+    def checkout(pre_checkout_query):
+        bot.answer_pre_checkout_query(pre_checkout_query.id, ok=True)
+
+    @bot.message_handler(content_types=["successful_payment"])
+    def handle_successful_payment(message):
+        try:
+            with connect() as conn:
+                key = make_premium_key(conn, 30)
+
+            bot.send_message(
+                message.chat.id,
+                "✅ Спасибо за оплату!\n\n"
+                "🎉 Ваш ключ премиум подписки готов!\n\n"
+                f"🔑 Ваш ключ активации:\n`{key}`\n\n"
+                "📝 Как активировать:\n"
+                "1. Откройте приложение doATOM\n"
+                "2. Перейдите в профиль\n"
+                "3. Вставьте ключ в раздел «Премиум подписка»\n"
+                "4. Нажмите «Активировать»\n\n"
+                "✨ После активации откроется доступ к ИИ-ментору!",
+                parse_mode="Markdown",
+            )
+        except Exception as error:
+            bot.send_message(
+                message.chat.id,
+                f"❌ Ошибка при генерации ключа: {error}\n\n"
+                "Пожалуйста, обратитесь в поддержку.",
+            )
+
+    @bot.message_handler(commands=["pay"])
+    def pay_command(message):
+        handle_payment(
+            types.CallbackQuery(
+                id="0",
+                from_user=message.from_user,
+                chat_instance="0",
+                data="pay",
+            )
+        )
 
     def polling():
         print("Telegram-бот ДуАТОМ запущен вместе с Flask backend")

@@ -99,7 +99,7 @@ type IconName =
   | 'help-circle' | 'zap' | 'microscope' | 'arrow-right' | 'arrow-left'
   | 'check' | 'x' | 'lock' | 'send' | 'telegram' | 'logout' | 'settings'
   | 'coins' | 'chart' | 'target' | 'layers' | 'spark' | 'menu' | 'close'
-  | 'list' | 'sigma' | 'lightbulb' | 'code' | 'check-circle';
+  | 'list' | 'sigma' | 'lightbulb' | 'code' | 'check-circle' | 'search';
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(path, {
@@ -176,6 +176,7 @@ function Icon({ name, size = 22, strokeWidth = 1.9 }: { name: IconName | string;
     lightbulb: <><path d="M9 18h6M10 21h4" {...common}/><path d="M8.5 14.5A6 6 0 1 1 15.5 14.5c-.9.8-1.5 1.5-1.5 3h-4c0-1.5-.6-2.2-1.5-3Z" {...common}/></>,
     code: <><path d="m8 9-4 3 4 3M16 9l4 3-4 3M14 5l-4 14" {...common}/></>,
     'check-circle': <><circle cx="12" cy="12" r="9" {...common}/><path d="m8 12 2.5 2.5L16.5 8.5" {...common}/></>,
+    search: <><circle cx="11" cy="11" r="7" {...common}/><path d="m20 20-4-4" {...common}/></>,
   };
   return <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" focusable="false">{paths[name] || paths.atom}</svg>;
 }
@@ -453,52 +454,119 @@ function DashboardScreen({ subjects, user, setView, setSubjectId, requestAuth }:
   subjects: Subject[]; user: User | null; setView: (v: View) => void; setSubjectId: (id: string) => void; requestAuth: () => void;
 }) {
   const progress = user?.stats.totalLessons ? Math.round(user.stats.completedLessons / user.stats.totalLessons * 100) : 0;
-  return <div className="screen-stack">
-    <section className="welcome-panel">
-      <div className="welcome-copy">
-        <span className="welcome-kicker">ОБРАЗОВАТЕЛЬНАЯ ПЛАТФОРМА</span>
-        <h1>{user ? `${user.firstName}, продолжим обучение` : 'Изучай школьные предметы через атомную отрасль'}</h1>
-        <p>Физика, информатика, химия, биология, математика и история — на задачах и примерах, связанных с мирными атомными технологиями.</p>
-        <div className="welcome-actions">
-          <button className="light-button" onClick={() => setView('topics')}>Открыть темы <Icon name="arrow-right" size={18} /></button>
-          <button className="outline-light-button" onClick={() => setView('tasks')}>Перейти к заданиям</button>
+  const featured = subjects.slice(0, 3);
+  const activity = [32, 46, 38, 58, 42, 51, Math.max(28, Math.min(68, progress || 35))];
+
+  return <div className="dashboard-workspace">
+    <div className="dashboard-main-column">
+      <section className="welcome-panel dashboard-hero">
+        <div className="welcome-copy">
+          <span className="welcome-kicker">ДУАТОМ · ОБРАЗОВАТЕЛЬНАЯ ПЛАТФОРМА</span>
+          <h1>{user ? `${user.firstName}, прокачивай знания вместе с атомной отраслью` : 'Прокачивай знания вместе с атомной отраслью'}</h1>
+          <p>Короткие уроки, задания и AI-помощник по физике, информатике, химии, биологии, математике и истории.</p>
+          <div className="welcome-actions">
+            <button className="light-button" onClick={() => setView('topics')}>Продолжить обучение <Icon name="arrow-right" size={17} /></button>
+            <button className="outline-light-button" onClick={() => setView('tasks')}>Открыть задания</button>
+          </div>
         </div>
-      </div>
-      <div className="welcome-mark" aria-hidden="true"><Icon name="atom" size={150} strokeWidth={1.1} /></div>
-    </section>
+        <div className="hero-visual" aria-hidden="true">
+          <span className="hero-orbit hero-orbit-a" />
+          <span className="hero-orbit hero-orbit-b" />
+          <span className="hero-orbit hero-orbit-c" />
+          <span className="hero-core"><Icon name="atom" size={72} strokeWidth={1.25} /></span>
+          <span className="hero-star hero-star-a" />
+          <span className="hero-star hero-star-b" />
+        </div>
+      </section>
 
-    {user?.program?.sections?.length ? <section className="panel personal-program">
-      <div className="section-head"><div><span className="eyebrow">ПЕРСОНАЛЬНАЯ ПРОГРАММА</span><h2>С чего лучше начать</h2><p>{user.program.levelNote}</p></div><span className="program-level"><Icon name="target" size={18}/>{user.program.level}</span></div>
-      <div className="program-list">{user.program.sections.slice(0, 3).map((section, index) => <button key={section.subjectId} onClick={() => { setSubjectId(section.subjectId); setView('topics'); }}>
-        <span className="program-index">{index + 1}</span><span className="program-icon"><Icon name={section.icon} size={22}/></span><span className="program-copy"><strong>{section.name}</strong><small>{section.reason}</small></span><span className="program-base">База {section.scorePct}%</span><Icon name="arrow-right" size={18}/>
-      </button>)}</div>
-    </section> : null}
+      {featured.length > 0 && <section className="learning-snapshot" aria-label="Быстрый доступ к курсам">
+        {featured.map((subject, index) => <button key={subject.id} onClick={() => { setSubjectId(subject.id); setView('topics'); }}>
+          <span className={`snapshot-icon snapshot-tone-${index}`}><Icon name={subject.icon} size={20}/></span>
+          <span className="snapshot-copy"><small>{index === 0 ? 'Продолжить' : 'В программе'}</small><strong>{subject.name}</strong></span>
+          <span className="snapshot-count">{subject.lessonsCount} уроков</span>
+          <Icon name="arrow-right" size={16}/>
+        </button>)}
+      </section>}
 
-    <div className="dashboard-grid">
-      <section className="panel dashboard-main">
-        <div className="section-head"><div><span className="eyebrow">НАПРАВЛЕНИЯ</span><h2>Выбери предмет</h2></div><button className="text-link" onClick={() => setView('topics')}>Все темы <Icon name="arrow-right" size={16} /></button></div>
+      {user?.program?.sections?.length ? <section className="panel personal-program">
+        <div className="section-head"><div><span className="eyebrow">ПЕРСОНАЛЬНАЯ ПРОГРАММА</span><h2>Рекомендуемый маршрут</h2><p>{user.program.levelNote}</p></div><span className="program-level"><Icon name="target" size={17}/>{user.program.level}</span></div>
+        <div className="program-list">{user.program.sections.slice(0, 3).map((section, index) => <button key={section.subjectId} onClick={() => { setSubjectId(section.subjectId); setView('topics'); }}>
+          <span className="program-index">{index + 1}</span><span className="program-icon"><Icon name={section.icon} size={20}/></span><span className="program-copy"><strong>{section.name}</strong><small>{section.reason}</small></span><span className="program-base">База {section.scorePct}%</span><Icon name="arrow-right" size={17}/>
+        </button>)}</div>
+      </section> : null}
+
+      <section className="continue-learning">
+        <div className="section-head"><div><span className="eyebrow">ПРОДОЛЖИТЬ ОБУЧЕНИЕ</span><h2>Курсы для тебя</h2></div><button className="text-link" onClick={() => setView('topics')}>Все темы <Icon name="arrow-right" size={16}/></button></div>
+        <div className="continue-grid">
+          {subjects.slice(0, 3).map((subject, index) => <article className="course-card" key={subject.id}>
+            <button className={`course-cover course-cover-${index}`} onClick={() => { setSubjectId(subject.id); setView('topics'); }} aria-label={`Открыть ${subject.name}`}>
+              <span className="course-cover-label"><Icon name={subject.icon} size={18}/>{subject.name}</span>
+              <span className="course-cover-art"><Icon name={subject.icon} size={64} strokeWidth={1.2}/></span>
+              <span className="course-cover-chip">{subject.questionsCount} заданий</span>
+            </button>
+            <div className="course-card-body">
+              <span className="course-category"><Icon name={subject.icon} size={14}/>{subject.name}</span>
+              <h3>{index === 0 ? 'Основы: от теории к практике' : index === 1 ? 'Разбираем ключевые понятия' : 'Практический курс по теме'}</h3>
+              <p>{subject.description}</p>
+              <div className="course-progress-line"><span style={{ width: `${Math.min(86, 28 + index * 19 + Math.round(progress / 5))}%` }}/></div>
+              <div className="course-card-footer"><span>{subject.lessonsCount} уроков</span><button onClick={() => { setSubjectId(subject.id); setView('topics'); }}>Открыть <Icon name="arrow-right" size={15}/></button></div>
+            </div>
+          </article>)}
+        </div>
+      </section>
+
+      <section className="panel dashboard-main subject-catalog">
+        <div className="section-head"><div><span className="eyebrow">НАПРАВЛЕНИЯ</span><h2>Все предметы</h2></div><button className="text-link" onClick={() => setView('topics')}>Смотреть программу <Icon name="arrow-right" size={16} /></button></div>
         <div className="dashboard-subjects">
           {subjects.map((subject) => <SubjectCard key={subject.id} subject={subject} onClick={() => { setSubjectId(subject.id); setView('topics'); }} />)}
         </div>
       </section>
-
-      <aside className="dashboard-side">
-        <section className="panel progress-panel">
-          <div className="panel-icon"><Icon name="chart" /></div>
-          <span className="eyebrow">ПРОГРЕСС</span>
-          <h3>{user ? `${progress}% программы` : 'Сохраняй результат'}</h3>
-          {user ? <>
-            <div className="progress-track"><span style={{ width: `${progress}%` }} /></div>
-            <p>{user.stats.completedLessons} из {user.stats.totalLessons} уроков завершено</p>
-          </> : <><p>Войди в аккаунт, чтобы отмечать пройденные уроки и получать атомкоины за ответы.</p><button className="secondary-button full" onClick={requestAuth}>Войти</button></>}
-        </section>
-        <section className="panel coin-panel">
-          <div className="coin-panel-head"><Coin size={42} /><div><span className="eyebrow">АТОМКОИНЫ</span><strong>{user?.coins ?? 0}</strong></div></div>
-          <p>Получай атомкоины за правильные ответы и используй их во внутреннем магазине.</p>
-          <button className="secondary-button full" onClick={() => setView('store')}>Открыть магазин</button>
-        </section>
-      </aside>
     </div>
+
+    <aside className="dashboard-side dashboard-insights">
+      {user && <section className="panel dashboard-profile-card">
+        <div className="insight-head"><span>Статистика</span><button aria-label="Открыть профиль" onClick={() => setView('profile')}><Icon name="settings" size={17}/></button></div>
+        <div className="progress-dial" aria-label={`Прогресс ${progress}%`}>
+          <svg viewBox="0 0 120 120" role="img">
+            <circle className="progress-dial-track" cx="60" cy="60" r="48" />
+            <circle className="progress-dial-value" cx="60" cy="60" r="48" pathLength="100" strokeDasharray={`${progress} 100`} />
+          </svg>
+          <div className="dashboard-profile-avatar">{user.firstName[0]?.toUpperCase()}</div>
+          <span>{progress}%</span>
+        </div>
+        <strong>Добрый день, {user.firstName}</strong>
+        <p>Продолжай обучение, чтобы закрыть цель на неделю.</p>
+        <div className="dashboard-profile-metrics">
+          <span><strong>{user.stats.accuracy}%</strong><small>точность</small></span>
+          <span><strong>{user.stats.completedLessons}</strong><small>уроков</small></span>
+        </div>
+      </section>}
+
+      <section className="panel activity-panel">
+        <div className="insight-head"><span>Активность</span><small>7 дней</small></div>
+        <div className="activity-summary"><strong>{Math.max(1, Math.round((user?.stats.completedLessons || 1) * 0.7))} ч</strong><span>обучения</span></div>
+        <div className="activity-chart" aria-label="Активность за неделю">
+          {activity.map((height, index) => <span key={index} className={index === activity.length - 1 ? 'active' : ''} style={{ height: `${height}%` }}><i /></span>)}
+        </div>
+        <div className="activity-days"><span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span></div>
+      </section>
+
+      <section className="panel ai-mentor-card">
+        <div className="mentor-mark"><Icon name="spark" size={22}/></div>
+        <div><span className="eyebrow">AI-ПОМОЩНИК</span><h3>Атомный наставник</h3><p>Объяснит тему, формулу или ошибку в задании простыми словами.</p></div>
+        <button className="secondary-button full" onClick={() => setView('chat')}>Задать вопрос <Icon name="arrow-right" size={16}/></button>
+      </section>
+
+      <section className="panel coin-panel compact-coin-panel">
+        <div className="coin-panel-head"><Coin size={38} /><div><span className="eyebrow">АТОМКОИНЫ</span><strong>{user?.coins ?? 0}</strong></div></div>
+        <p>Награды за задания можно обменять на подсказки и усилители.</p>
+        <button className="secondary-button full" onClick={() => setView('store')}>Открыть магазин</button>
+      </section>
+
+      {!user && <section className="panel progress-panel">
+        <div className="panel-icon"><Icon name="chart" /></div><span className="eyebrow">ПРОГРЕСС</span><h3>Сохраняй результат</h3><p>Войди в аккаунт, чтобы отмечать уроки и получать атомкоины.</p><button className="secondary-button full" onClick={requestAuth}>Войти</button>
+      </section>}
+    </aside>
   </div>;
 }
 
@@ -836,6 +904,7 @@ function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [telegramUrl, setTelegramUrl] = useState('https://t.me/yasno_sub_bot');
   const [initialError, setInitialError] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const loadSubjects = async () => {
     const subjectData = await api.subjects();
@@ -863,6 +932,14 @@ function App() {
 
   const title = useMemo(() => navigation.find((item) => item.id === view)?.label || 'ДуАТОМ', [view]);
   const go = (next: View) => { setView(next); setSidebarOpen(false); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  const submitSearch = (event: FormEvent) => {
+    event.preventDefault();
+    const query = searchQuery.trim().toLocaleLowerCase('ru-RU');
+    if (!query) return;
+    const match = subjects.find((subject) => `${subject.name} ${subject.description}`.toLocaleLowerCase('ru-RU').includes(query));
+    if (match) setSubjectId(match.id);
+    go('topics');
+  };
   const openAuth = (mode: 'login' | 'register') => { setAuthMode(mode); setAuthOpen(true); };
   const handleAuth = (nextUser: User) => {
     setUser(nextUser);
@@ -898,7 +975,12 @@ function App() {
     {sidebarOpen && <button className="mobile-overlay" onClick={() => setSidebarOpen(false)} aria-label="Закрыть меню" />}
     <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
       <div className="sidebar-brand"><img src="/rosatom-logo-white.png" alt="Росатом"/><div className="sidebar-product"><strong>ДуАТОМ</strong><small>Учебная платформа</small></div></div>
-      <nav className="sidebar-nav">{navigation.map((item) => <button key={item.id} className={view === item.id ? 'active' : ''} onClick={() => go(item.id)}><span className="nav-icon"><Icon name={item.icon} size={20}/></span><span>{item.label}</span>{item.id === 'store' && <span className="nav-balance"><Coin size={17}/>{user.coins}</span>}</button>)}</nav>
+      <nav className="sidebar-nav">
+        <span className="sidebar-label">ОБЗОР</span>
+        {navigation.slice(0, 4).map((item) => <button key={item.id} className={view === item.id ? 'active' : ''} onClick={() => go(item.id)}><span className="nav-icon"><Icon name={item.icon} size={20}/></span><span>{item.label}</span></button>)}
+        <span className="sidebar-label sidebar-label-spaced">СЕРВИСЫ</span>
+        {navigation.slice(4).map((item) => <button key={item.id} className={view === item.id ? 'active' : ''} onClick={() => go(item.id)}><span className="nav-icon"><Icon name={item.icon} size={20}/></span><span>{item.label}</span>{item.id === 'store' && <span className="nav-balance"><Coin size={17}/>{user.coins}</span>}</button>)}
+      </nav>
       <div className="sidebar-bottom">
         <a href={telegramUrl} target="_blank" rel="noreferrer" className="telegram-sidebar"><Icon name="telegram" size={19}/><div><strong>Telegram-бот</strong><small>Ключи АТОМ+ и помощь</small></div></a>
         <button className="sidebar-user" onClick={() => go('profile')}><span className="mini-avatar">{user.firstName[0]?.toUpperCase()}</span><span><strong>{user.firstName}</strong><small>{user.subscription.name}</small></span></button>
@@ -909,7 +991,20 @@ function App() {
       <header className="app-header">
         <button className="mobile-menu-button" onClick={() => setSidebarOpen(true)} aria-label="Открыть меню"><Icon name="menu"/></button>
         <div className="header-title"><span>ДуАТОМ</span><strong>{title}</strong></div>
-        <div className="header-actions"><button className="header-coins" onClick={() => go('store')}><Coin size={25}/><strong>{user.coins}</strong></button><button className="header-profile" onClick={() => go('profile')}>{user.firstName[0]?.toUpperCase()}</button></div>
+        <form className="header-search" onSubmit={submitSearch}>
+          <Icon name="search" size={19}/>
+          <input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Поиск по курсам..." aria-label="Поиск по курсам"/>
+        </form>
+        <div className="header-actions">
+          <button className="header-quick" onClick={() => go('chat')} aria-label="Открыть AI-чат"><Icon name="message" size={19}/></button>
+          <button className="header-quick" onClick={() => go('tasks')} aria-label="Открыть задания"><Icon name="clipboard" size={19}/></button>
+          <span className="header-divider"/>
+          <button className="header-coins" onClick={() => go('store')}><Coin size={24}/><strong>{user.coins}</strong></button>
+          <button className="header-user" onClick={() => go('profile')}>
+            <span className="header-profile">{user.firstName[0]?.toUpperCase()}</span>
+            <span className="header-user-copy"><strong>{user.firstName} {user.lastName}</strong><small>{user.subscription.name}</small></span>
+          </button>
+        </div>
       </header>
       <main className="content-area">
         {initialError && <div className="error-banner"><Icon name="x" size={18}/>{initialError}. Запусти Flask backend на порту 5001.</div>}
