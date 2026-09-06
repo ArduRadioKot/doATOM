@@ -3,3 +3,4 @@
 node_modules/
 backend/data/*.db
 backend/.env
+dist/
