@@ -467,7 +467,7 @@ svg {
 }
 .subject-copy small {
   color: var(--muted);
-  font-size: 16px;
+  font-size: 14px;
   line-height: 1.35;
 }
 .subject-meta {
@@ -6544,7 +6544,7 @@ footer {
   font-size: 15px;
 }
 .personal-program .program-copy small {
-  font-size: 12px;
+  font-size: 14px;
 }
 .personal-program .program-base {
   font-size: 12px;
@@ -6565,12 +6565,24 @@ footer {
   font-size: 17px;
 }
 .continue-learning .course-card p {
-  font-size: 13px;
+  font-size: 14px;
 }
 .continue-learning .course-card-footer {
   font-size: 11px;
 }
 .continue-learning .course-card-footer button {
+  font-size: 12px;
+}
+.subject-card .subject-copy small,
+.dashboard-profile-card > p,
+.progress-panel p,
+.coin-panel p,
+.ai-mentor-card p {
+  font-size: 14px;
+}
+.subject-card .subject-meta,
+.dashboard-profile-metrics small,
+.activity-summary span {
   font-size: 12px;
 }
 
@@ -6672,4 +6684,10 @@ footer {
 }
 .badge-list button small {
   font-size: 11px;
+}
+
+@media (max-width: 720px) {
+  .subject-card .subject-copy small {
+    font-size: 14px;
+  }
 }
