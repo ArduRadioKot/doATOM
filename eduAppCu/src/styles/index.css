@@ -6612,3 +6612,50 @@ footer {
 .badge-list button small {
   font-size: 11px;
 }
+
+.dashboard-hero .light-button {
+  font-size: 34px;
+}
+.learning-snapshot .snapshot-copy small {
+  font-size: 22px;
+}
+.learning-snapshot .snapshot-copy strong {
+  font-size: 28px;
+}
+.learning-snapshot .snapshot-count {
+  font-size: 22px;
+}
+.learning-snapshot > button {
+  min-height: 116px;
+}
+.personal-program .program-copy strong {
+  font-size: 30px;
+}
+.personal-program .program-copy small,
+.personal-program .program-base {
+  font-size: 24px;
+}
+.personal-program .program-list button {
+  min-height: 170px;
+}
+.continue-learning .course-cover-label {
+  font-size: 22px;
+}
+.continue-learning .course-cover-chip {
+  font-size: 22px;
+}
+.continue-learning .course-category {
+  font-size: 22px;
+}
+.continue-learning .course-card h3 {
+  font-size: 34px;
+}
+.continue-learning .course-card p {
+  font-size: 26px;
+}
+.continue-learning .course-card-footer {
+  font-size: 22px;
+}
+.continue-learning .course-card-footer button {
+  font-size: 24px;
+}
