@@ -6521,3 +6521,94 @@ footer {
   min-width: auto;
   flex: 0 0 auto;
 }
+
+.learning-snapshot .snapshot-copy small {
+  font-size: 11px;
+}
+.learning-snapshot .snapshot-copy strong {
+  font-size: 14px;
+}
+.learning-snapshot .snapshot-count {
+  font-size: 11px;
+}
+.personal-program .section-head p {
+  font-size: 14px;
+}
+.personal-program .program-level {
+  font-size: 13px;
+}
+.personal-program .program-index {
+  font-size: 12px;
+}
+.personal-program .program-copy strong {
+  font-size: 15px;
+}
+.personal-program .program-copy small {
+  font-size: 12px;
+}
+.personal-program .program-base {
+  font-size: 12px;
+}
+.continue-learning > .section-head h2 {
+  font-size: 22px;
+}
+.continue-learning .course-cover-label {
+  font-size: 11px;
+}
+.continue-learning .course-cover-chip {
+  font-size: 11px;
+}
+.continue-learning .course-category {
+  font-size: 11px;
+}
+.continue-learning .course-card h3 {
+  font-size: 17px;
+}
+.continue-learning .course-card p {
+  font-size: 13px;
+}
+.continue-learning .course-card-footer {
+  font-size: 11px;
+}
+.continue-learning .course-card-footer button {
+  font-size: 12px;
+}
+
+.profile-heading h1 {
+  font-size: 30px;
+}
+.profile-heading p {
+  font-size: 16px;
+}
+.profile-coins small {
+  font-size: 12px;
+}
+.profile-coins strong {
+  font-size: 24px;
+}
+.stats-grid strong {
+  font-size: 25px;
+}
+.stats-grid span {
+  font-size: 12px;
+}
+.profile-columns label {
+  font-size: 13px;
+}
+.subscription-card p,
+.muted,
+.login-required p {
+  font-size: 14px;
+}
+.subscription-card > small {
+  font-size: 12px;
+}
+.active-badge {
+  font-size: 12px;
+}
+.badge-list button strong {
+  font-size: 13px;
+}
+.badge-list button small {
+  font-size: 11px;
+}
