@@ -463,11 +463,11 @@ svg {
   min-width: 0;
 }
 .subject-copy strong {
-  font-size: 15px;
+  font-size: 18px;
 }
 .subject-copy small {
   color: var(--muted);
-  font-size: 12px;
+  font-size: 16px;
   line-height: 1.35;
 }
 .subject-meta {
