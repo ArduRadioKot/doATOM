@@ -2865,7 +2865,7 @@ img {
     padding: 13px;
   }
   .subject-copy small {
-    font-size: 11.5px;
+    font-size: 15.5px;
   }
 
   .quiz-top {
@@ -4679,14 +4679,14 @@ a:focus-visible {
   color: var(--accent);
 }
 .subject-copy strong {
-  font-size: 13px;
+  font-size: 18px;
 }
 .subject-copy small {
   display: -webkit-box;
   overflow: hidden;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
-  font-size: 10px;
+  font-size: 16px;
   line-height: 1.45;
 }
 .subject-meta {
